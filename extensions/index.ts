@@ -1,39 +1,195 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
-import { formatGreeting } from "../lib/greeting.ts";
-import { StringEnum } from "../lib/schema.ts";
+import {
+  applyPin,
+  formatReport,
+  getProjectRoot,
+  initializeProject,
+  loadProjectRetention,
+  purgeRecord,
+  quarantineRecord,
+  restoreRecord,
+  saveManifestAndSidecars,
+  selectOldestExpiredRecord,
+  syncRecordUsage,
+  PACKAGE_NAME,
+  type RetentionRecord,
+} from "../lib/retention.ts";
 
-const greetParameters = Type.Object({
-  name: Type.String({ description: "Name to greet" }),
-  mode: StringEnum(["short", "friendly"], {
-    description: "Greeting style. Prefer short unless the user asks for more warmth.",
-  }),
-});
+function recordLabel(record: Pick<RetentionRecord, "displayName" | "kind" | "state" | "pinned" | "rootPath">) {
+  const pin = record.pinned ? "pin" : "free";
+  return `${record.displayName} · ${record.kind} · ${record.state} · ${pin} · ${record.rootPath}`;
+}
+
+async function chooseRecord(
+  ctx: { hasUI: boolean; ui: { select: (title: string, options: string[]) => Promise<string | undefined> } },
+  title: string,
+  records: RetentionRecord[],
+) {
+  if (!ctx.hasUI || records.length === 0) return undefined;
+  const labels = records.map(recordLabel);
+  const choice = await ctx.ui.select(title, labels);
+  if (!choice) return undefined;
+  const index = labels.indexOf(choice);
+  return index >= 0 ? records[index] : undefined;
+}
 
 export default function (pi: ExtensionAPI) {
-  pi.registerCommand("template-info", {
-    description: "Show TypeScript template information",
+  pi.on("session_start", async (_event, ctx) => {
+    const projectRoot = getProjectRoot(ctx.cwd);
+    const manifest = await initializeProject(projectRoot);
+    const candidate = selectOldestExpiredRecord(manifest.records);
+    if (!candidate) return;
+    if (!ctx.hasUI) return;
+
+    const confirmed = await ctx.ui.confirm(
+      "Pi Retention",
+      `Oldest expired candidate:\n\n${recordLabel(candidate)}\n\nQuarantine this item?`,
+    );
+
+    if (!confirmed) return;
+
+    await quarantineRecord(projectRoot, candidate);
+    await saveManifestAndSidecars(projectRoot, manifest);
+    ctx.ui.notify(`Quarantined: ${candidate.displayName}`, "info");
+  });
+
+  pi.on("tool_call", async (event, ctx) => {
+    const toolName = typeof event.toolName === "string" ? event.toolName : "";
+    if (!toolName) return undefined;
+
+    const projectRoot = getProjectRoot(ctx.cwd);
+    const manifest = await loadProjectRetention(projectRoot);
+    const updated = await syncRecordUsage(manifest, toolName);
+    if (!updated) return undefined;
+
+    await saveManifestAndSidecars(projectRoot, manifest);
+    return undefined;
+  });
+
+  pi.registerCommand("retention:init", {
+    description: "Initialize Pi Retention manifest and sidecars",
     handler: async (_args, ctx) => {
-      ctx.ui.notify("TypeScript-first Pi package template loaded.", "info");
+      const projectRoot = getProjectRoot(ctx.cwd);
+      const manifest = await initializeProject(projectRoot);
+      await syncRecordUsage(manifest, PACKAGE_NAME);
+      await saveManifestAndSidecars(projectRoot, manifest);
+      ctx.ui.notify(`Retention initialized: ${manifest.records.length} root(s)`, "info");
     },
   });
 
-  pi.registerTool({
-    name: "template_greet",
-    label: "Template Greet",
-    description: "Return a typed greeting from the Pi package template",
-    promptSnippet: "template_greet: return a typed greeting from the template package",
-    promptGuidelines: [
-      "Use template_greet only when testing this template package or greeting the user.",
-    ],
-    parameters: greetParameters,
-    async execute(_toolCallId, params) {
-      const message = formatGreeting(params);
+  pi.registerCommand("retention:report", {
+    description: "Show the Pi Retention report",
+    handler: async (_args, ctx) => {
+      const projectRoot = getProjectRoot(ctx.cwd);
+      const manifest = await loadProjectRetention(projectRoot);
+      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const text = formatReport(manifest);
+      await saveManifestAndSidecars(projectRoot, manifest);
+      ctx.ui.notify(text, "info");
+    },
+  });
 
-      return {
-        content: [{ type: "text", text: message }],
-        details: { message, mode: params.mode },
-      };
+  pi.registerCommand("retention:confirm", {
+    description: "Quarantine the oldest expired candidate",
+    handler: async (_args, ctx) => {
+      const projectRoot = getProjectRoot(ctx.cwd);
+      const manifest = await loadProjectRetention(projectRoot);
+      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const candidate = selectOldestExpiredRecord(manifest.records);
+      if (!candidate) {
+        await saveManifestAndSidecars(projectRoot, manifest);
+        ctx.ui.notify("No expired candidate found.", "info");
+        return;
+      }
+
+      if (!ctx.hasUI) return;
+
+      const confirmed = await ctx.ui.confirm(
+        "Pi Retention",
+        `Quarantine the oldest expired candidate?\n\n${recordLabel(candidate)}`,
+      );
+
+      if (!confirmed) return;
+
+      await quarantineRecord(projectRoot, candidate);
+      await saveManifestAndSidecars(projectRoot, manifest);
+      ctx.ui.notify(`Quarantined: ${candidate.displayName}`, "info");
+    },
+  });
+
+  pi.registerCommand("retention:restore", {
+    description: "Restore one quarantined item",
+    handler: async (_args, ctx) => {
+      const projectRoot = getProjectRoot(ctx.cwd);
+      const manifest = await loadProjectRetention(projectRoot);
+      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const candidate = await chooseRecord(ctx, "Restore which item?", manifest.records.filter((record) => record.state === "quarantined"));
+      if (!candidate) {
+        await saveManifestAndSidecars(projectRoot, manifest);
+        return;
+      }
+
+      await restoreRecord(projectRoot, candidate);
+      await saveManifestAndSidecars(projectRoot, manifest);
+      ctx.ui.notify(`Restored: ${candidate.displayName}`, "info");
+    },
+  });
+
+  pi.registerCommand("retention:purge", {
+    description: "Permanently delete one quarantined item",
+    handler: async (_args, ctx) => {
+      const projectRoot = getProjectRoot(ctx.cwd);
+      const manifest = await loadProjectRetention(projectRoot);
+      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const candidate = await chooseRecord(ctx, "Purge which quarantined item?", manifest.records.filter((record) => record.state === "quarantined"));
+      if (!candidate) {
+        await saveManifestAndSidecars(projectRoot, manifest);
+        return;
+      }
+
+      const confirmed = !ctx.hasUI || (await ctx.ui.confirm("Pi Retention", `Permanently delete this quarantined item?\n\n${recordLabel(candidate)}`));
+      if (!confirmed) return;
+
+      await purgeRecord(projectRoot, candidate);
+      manifest.records = manifest.records.filter((record) => record.id !== candidate.id);
+      await saveManifestAndSidecars(projectRoot, manifest);
+      ctx.ui.notify(`Purged: ${candidate.displayName}`, "info");
+    },
+  });
+
+  pi.registerCommand("retention:pin", {
+    description: "Pin one tracked item",
+    handler: async (_args, ctx) => {
+      const projectRoot = getProjectRoot(ctx.cwd);
+      const manifest = await loadProjectRetention(projectRoot);
+      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const candidate = await chooseRecord(ctx, "Pin which item?", manifest.records.filter((record) => record.state === "active" && !record.pinned));
+      if (!candidate) {
+        await saveManifestAndSidecars(projectRoot, manifest);
+        return;
+      }
+
+      applyPin(candidate, true);
+      await saveManifestAndSidecars(projectRoot, manifest);
+      ctx.ui.notify(`Pinned: ${candidate.displayName}`, "info");
+    },
+  });
+
+  pi.registerCommand("retention:unpin", {
+    description: "Unpin one tracked item",
+    handler: async (_args, ctx) => {
+      const projectRoot = getProjectRoot(ctx.cwd);
+      const manifest = await loadProjectRetention(projectRoot);
+      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const candidate = await chooseRecord(ctx, "Unpin which item?", manifest.records.filter((record) => record.state === "active" && record.pinned));
+      if (!candidate) {
+        await saveManifestAndSidecars(projectRoot, manifest);
+        return;
+      }
+
+      applyPin(candidate, false);
+      await saveManifestAndSidecars(projectRoot, manifest);
+      ctx.ui.notify(`Unpinned: ${candidate.displayName}`, "info");
     },
   });
 }

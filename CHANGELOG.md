@@ -4,12 +4,20 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
-## [0.1.2] - 2026-06-04
+## [0.1.2] - 2026-06-14
+
+### Added
+
+- First Pi Retention MVP: local usage tracking, report, confirm, restore, purge, pin, and unpin commands.
+- Startup-time confirmation for the oldest expired candidate.
+- YAML project manifest / sidecars and project-local JSONL usage log.
+- Quarantine flow and project trash layout.
 
 ### Changed
 
-- README and `docs/template-checklist.md` now follow the Pi OSS minimal-docs policy: `docs/` is optional, with explicit post-generation cleanup for template bootstrap docs.
-- Template bootstrap docs (`github-template.md`, `repository-settings.md`, `typescript.md`) are labeled for delete-or-merge after setup.
+- Replaced the template scaffold with the Pi Retention package identity.
+- Removed template placeholder skills, prompts, themes, and docs from the published package.
+- Updated README with commands, data files, and startup behavior.
 
 ## [0.1.1] - 2026-06-01
 
@@ -19,7 +27,7 @@ This project follows semantic versioning.
 - Publish workflow now installs a current npm CLI so npm Trusted Publishing OIDC is supported.
 - CI and publish workflow commands no longer include literal trailing `\\n` text.
 
-## [0.1.0] - YYYY-MM-DD
+## [0.1.0] - 2026-05-29
 
 ### Added
 
