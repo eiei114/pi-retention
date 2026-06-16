@@ -304,20 +304,32 @@ export async function hydrateManifest(projectRoot: string): Promise<RetentionMan
   return manifest;
 }
 
-export function selectOldestExpiredRecord(records: RetentionRecord[], now = nowIso()) {
-  const active = records.filter(
-    (record) =>
-      record.state === "active" &&
-      !record.pinned &&
-      normalizeRootPath(record.rootPath) !== SELF_ROOT &&
-      new Date(record.dueAt).getTime() <= new Date(now).getTime(),
+export function isStartupCandidate(record: RetentionRecord, now = nowIso()) {
+  return (
+    record.state === "active" &&
+    !record.pinned &&
+    normalizeRootPath(record.rootPath) !== SELF_ROOT &&
+    new Date(record.dueAt).getTime() <= new Date(now).getTime()
   );
+}
 
-  return active.sort((a, b) => {
-    const dueDelta = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
-    if (dueDelta !== 0) return dueDelta;
-    return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
-  })[0];
+export function compareStartupCandidates(a: RetentionRecord, b: RetentionRecord) {
+  const dueDelta = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+  if (dueDelta !== 0) return dueDelta;
+  return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
+}
+
+export function selectOldestExpiredRecord(records: RetentionRecord[], now = nowIso()) {
+  return records
+    .filter((record) => isStartupCandidate(record, now))
+    .sort(compareStartupCandidates)[0];
+}
+
+export function recordReportStatus(record: RetentionRecord, now = nowIso()) {
+  if (record.state === "quarantined") return "Q";
+  if (record.pinned) return "P";
+  if (new Date(record.dueAt).getTime() <= new Date(now).getTime()) return "!";
+  return "A";
 }
 
 export function selectQuarantinedRecord(records: RetentionRecord[]) {
@@ -333,23 +345,27 @@ export function recordStats(records: RetentionRecord[]): ReportStats {
   return { total, active, quarantined, due, protected: protectedCount };
 }
 
-export function formatReport(manifest: RetentionManifest) {
+export function formatReport(manifest: RetentionManifest, now = nowIso()) {
   const stats = recordStats(manifest.records);
+  const startupCandidate = selectOldestExpiredRecord(manifest.records, now);
   const lines = [
     `Retention report: ${stats.total} tracked`,
     `active=${stats.active} quarantined=${stats.quarantined} due=${stats.due} protected=${stats.protected}`,
+    "status: A=active !=due P=pinned Q=quarantined",
     "",
   ];
 
-  for (const record of manifest.records.sort((a, b) => {
-    const dueDelta = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
-    if (dueDelta !== 0) return dueDelta;
-    return a.displayName.localeCompare(b.displayName);
-  })) {
-    const status = record.state === "quarantined" ? "Q" : record.pinned ? "P" : new Date(record.dueAt).getTime() <= Date.now() ? "!" : "A";
+  if (startupCandidate) {
+    lines.push(`startup candidate (one per launch): ${startupCandidate.displayName}`);
+    lines.push("");
+  }
+
+  for (const record of manifest.records.sort(compareStartupCandidates)) {
+    const status = recordReportStatus(record, now);
+    const marker = startupCandidate?.id === record.id ? ">" : " ";
     const root = record.state === "quarantined" && record.quarantinePath ? record.quarantinePath : record.rootPath;
     lines.push(
-      `${status} ${record.displayName} · ${record.kind} · uses=${record.usageCount} · last=${record.lastUsedAt.slice(0, 10)} · due=${record.dueAt.slice(0, 10)} · ${root}`,
+      `${marker}${status} ${record.displayName} · ${record.kind} · uses=${record.usageCount} · last=${record.lastUsedAt.slice(0, 10)} · due=${record.dueAt.slice(0, 10)} · ${root}`,
     );
   }
 

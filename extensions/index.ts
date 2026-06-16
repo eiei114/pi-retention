@@ -33,24 +33,30 @@ async function chooseRecord(
   return index >= 0 ? records[index] : undefined;
 }
 
+async function confirmStartupCandidate(
+  ctx: { hasUI: boolean; ui: { confirm: (title: string, message: string) => Promise<boolean>; notify: (message: string, type?: "info" | "warning" | "error") => void } },
+  projectRoot: string,
+) {
+  const manifest = await initializeProject(projectRoot);
+  const candidate = selectOldestExpiredRecord(manifest.records);
+  if (!candidate || !ctx.hasUI) return;
+
+  const confirmed = await ctx.ui.confirm(
+    "Pi Retention",
+    `Oldest expired candidate (one per startup):\n\n${recordLabel(candidate)}\n\nQuarantine this item?`,
+  );
+
+  // Deny leaves state unchanged so the same candidate is offered on the next launch.
+  if (!confirmed) return;
+
+  await quarantineRecord(projectRoot, candidate);
+  await saveManifestAndSidecars(projectRoot, manifest);
+  ctx.ui.notify(`Quarantined: ${candidate.displayName}`, "info");
+}
+
 export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
-    const projectRoot = getProjectRoot(ctx.cwd);
-    const manifest = await initializeProject(projectRoot);
-    const candidate = selectOldestExpiredRecord(manifest.records);
-    if (!candidate) return;
-    if (!ctx.hasUI) return;
-
-    const confirmed = await ctx.ui.confirm(
-      "Pi Retention",
-      `Oldest expired candidate:\n\n${recordLabel(candidate)}\n\nQuarantine this item?`,
-    );
-
-    if (!confirmed) return;
-
-    await quarantineRecord(projectRoot, candidate);
-    await saveManifestAndSidecars(projectRoot, manifest);
-    ctx.ui.notify(`Quarantined: ${candidate.displayName}`, "info");
+    await confirmStartupCandidate(ctx, getProjectRoot(ctx.cwd));
   });
 
   pi.on("tool_call", async (event, ctx) => {

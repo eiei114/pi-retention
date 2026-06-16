@@ -14,11 +14,23 @@
 
 Pi Retention counts local usage, surfaces expired items, and quarantines one stale item at a time on startup.
 
+## Startup behavior
+
+On each Pi launch, Pi Retention evaluates expired active roots and may prompt for **at most one** quarantine candidate.
+
+- **Ordering:** earliest `dueAt` wins; ties break on oldest `lastUsedAt` (age).
+- **Deny:** declining the prompt changes nothing; the same candidate is offered on the next launch.
+- **Excluded:** pinned (`P`), quarantined (`Q`), self-protected, and not-yet-due roots never appear in the startup prompt.
+- **Report:** `/retention:report` uses the same ordering and labels the startup candidate explicitly.
+
+See [`ROADMAP.md`](ROADMAP.md) for MVP scope and non-goals.
+
 ## Features
 
 - Tracks usage locally per artifact root
 - Reports stale and protected items
-- Prompts once per startup for the oldest expired candidate
+- Prompts once per startup for the oldest expired candidate (due date, then age)
+- Report rows show `A`/`!`/`P`/`Q` status and the single startup candidate
 - Quarantines approved items before manual purge
 - Keeps retention data local
 
@@ -62,7 +74,7 @@ Then run:
 /retention:report
 ```
 
-On startup, Pi Retention also checks the oldest expired candidate and asks once before quarantine.
+On startup, Pi Retention checks the single oldest expired candidate and asks once before quarantine. Declining the prompt leaves the item active for the next launch.
 
 ## Package contents
 
