@@ -7,6 +7,7 @@ const {
   isStartupCandidate,
   recordReportStatus,
   selectOldestExpiredRecord,
+  SELF_ROOT,
 } = await import("../lib/retention.ts");
 
 const NOW = "2026-02-01T00:00:00.000Z";
@@ -32,6 +33,7 @@ test("isStartupCandidate excludes pinned, quarantined, and not-yet-due records",
   assert.equal(isStartupCandidate(record({ pinned: true }), NOW), false);
   assert.equal(isStartupCandidate(record({ state: "quarantined" }), NOW), false);
   assert.equal(isStartupCandidate(record({ dueAt: "2026-03-01T00:00:00.000Z" }), NOW), false);
+  assert.equal(isStartupCandidate(record({ rootPath: SELF_ROOT }), NOW), false);
   assert.equal(isStartupCandidate(record({}), NOW), true);
 });
 

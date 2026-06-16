@@ -53,7 +53,7 @@ export interface ReportStats {
   protected: number;
 }
 
-const SELF_ROOT = normalize(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
+export const SELF_ROOT = normalize(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
 
 function nowIso() {
   return new Date().toISOString();
