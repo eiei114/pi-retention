@@ -52,8 +52,22 @@ See [`ROADMAP.md`](ROADMAP.md) for MVP scope and non-goals.
 
 ## Install
 
+Install the published npm package with Pi:
+
 ```bash
 pi install npm:pi-retention
+```
+
+Pin a specific version when you want reproducible installs:
+
+```bash
+pi install npm:pi-retention@0.1.4
+```
+
+Install into the current project instead of your user Pi settings:
+
+```bash
+pi install npm:pi-retention -l
 ```
 
 Or install from GitHub:
@@ -62,7 +76,15 @@ Or install from GitHub:
 pi install git:github.com/eiei114/pi-retention
 ```
 
+Try it without permanently installing:
+
+```bash
+pi -e npm:pi-retention
+```
+
 ## Quick start
+
+Try this package locally from a clone:
 
 ```bash
 pi -e .
@@ -78,12 +100,17 @@ On startup, Pi Retention checks the single oldest expired candidate and asks onc
 
 ## Package contents
 
+Published tarball includes:
+
 | Path | Purpose |
 |---|---|
 | `extensions/` | Pi TypeScript extension entrypoints |
 | `lib/` | Shared TypeScript helpers |
-| `docs/` | Supporting docs |
+| `docs/` | Supporting docs (`examples.md`, `release.md`) |
 | `README.md` | Project entrypoint |
+| `ROADMAP.md` | MVP scope and non-goals |
+| `CHANGELOG.md` | Release history |
+| `LICENSE` | MIT license |
 
 ## Development
 
@@ -92,7 +119,18 @@ npm install
 npm run ci
 ```
 
+`npm run ci` runs typecheck, tests, and `npm run pack:check` (`npm pack --dry-run`) to verify the published tarball contents before release.
+
 ## Release
+
+Before tagging, confirm package readiness:
+
+```bash
+npm run ci
+npm run pack:check
+```
+
+Then bump and push:
 
 ```bash
 npm version patch
@@ -114,11 +152,12 @@ For vulnerability reporting, see [`SECURITY.md`](SECURITY.md).
 
 ## Links
 
+- npm: https://www.npmjs.com/package/pi-retention
+- GitHub: https://github.com/eiei114/pi-retention
+- Issues: https://github.com/eiei114/pi-retention/issues
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
 - [`CHANGELOG.md`](CHANGELOG.md)
-- GitHub: https://github.com/eiei114/pi-retention
-- Issues: https://github.com/eiei114/pi-retention/issues
 
 ## License
 

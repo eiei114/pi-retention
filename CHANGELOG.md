@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
+## [0.1.4] - 2026-06-26
+
+### Changed
+
+- README aligned with the current Pi extension template: expanded install paths, package contents table, and explicit `npm run pack:check` / `npm pack --dry-run` release-readiness guidance.
+
 ## [0.1.3] - 2026-06-17
 
 ### Added
