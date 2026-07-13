@@ -46,7 +46,8 @@ See [`ROADMAP.md`](ROADMAP.md) for MVP scope and non-goals.
 
 ## Data files
 
-- `.pi-retention-project.yaml` — project manifest
+- `.pi/.pi-retention-project.yaml` — project manifest (preferred)
+- `.pi-retention-project.yaml` — legacy project manifest (still read when present)
 - `.pi-retention.yaml` — per-root sidecar
 - `.pi-retention.jsonl` — append-only usage log
 - `.pi-retention-trash/` — quarantine area

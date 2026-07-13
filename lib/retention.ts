@@ -131,8 +131,24 @@ export function getProjectSettingsPath(projectRoot: string) {
   return join(projectRoot, ".pi", "settings.json");
 }
 
-export function getManifestPath(projectRoot: string) {
+export function getPreferredManifestPath(projectRoot: string) {
+  return join(projectRoot, ".pi", ".pi-retention-project.yaml");
+}
+
+export function getLegacyManifestPath(projectRoot: string) {
   return join(projectRoot, ".pi-retention-project.yaml");
+}
+
+export function getManifestPath(projectRoot: string) {
+  return getPreferredManifestPath(projectRoot);
+}
+
+async function resolveManifestPath(projectRoot: string) {
+  const preferred = getPreferredManifestPath(projectRoot);
+  const legacy = getLegacyManifestPath(projectRoot);
+  if (await readTextIfExists(preferred) !== undefined) return preferred;
+  if (await readTextIfExists(legacy) !== undefined) return legacy;
+  return preferred;
 }
 
 export function getLogPath(projectRoot: string) {
@@ -242,7 +258,7 @@ export function createEmptyManifest(): RetentionManifest {
 }
 
 export async function loadManifest(projectRoot: string): Promise<RetentionManifest> {
-  const path = getManifestPath(projectRoot);
+  const path = await resolveManifestPath(projectRoot);
   const raw = await readYamlIfExists<Partial<RetentionManifest>>(path);
   if (!raw) return createEmptyManifest();
 
@@ -259,7 +275,7 @@ export async function loadManifest(projectRoot: string): Promise<RetentionManife
 
 export async function saveManifest(projectRoot: string, manifest: RetentionManifest) {
   manifest.updatedAt = nowIso();
-  await writeYaml(getManifestPath(projectRoot), manifest);
+  await writeYaml(await resolveManifestPath(projectRoot), manifest);
 }
 
 async function saveSidecar(record: RetentionRecord) {
