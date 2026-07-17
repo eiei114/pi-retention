@@ -1,49 +1,65 @@
 # Examples
 
-This template ships one minimal example for each Pi package resource type.
+Pi Retention ships one extension entrypoint and a shared library. These examples match the commands registered in `extensions/index.ts`.
 
-## Extension
+## Local development
 
-`extensions/hello.ts` registers:
-
-- `/template-hello`
-- a small session status indicator
-
-Try it with:
+Load the package from a clone:
 
 ```bash
 pi -e .
 ```
 
-Then run:
+Initialize retention data for the current project:
 
 ```txt
-/template-hello YourName
+/retention:init
 ```
 
-## Agent Skill
+## Report tracked roots
 
-`skills/example-skill/SKILL.md` demonstrates a minimal Agent Skill.
+Show active, protected, quarantined, and due items:
 
-Replace it with your real workflow instructions.
+```txt
+/retention:report
+```
 
-## Prompt template
+The report uses the same ordering as the startup prompt: earliest `dueAt`, then oldest `lastUsedAt`.
 
-`prompts/example.md` demonstrates a tiny prompt template with one variable.
+## Quarantine workflow
 
-## Theme
+Manually quarantine the oldest expired candidate:
 
-`themes/example-theme.json` is a placeholder theme. Replace it or remove `themes/` if your package does not ship themes.
+```txt
+/retention:confirm
+```
 
-## Typed custom tool
+Restore or permanently delete a quarantined item:
 
-`extensions/index.ts` registers:
+```txt
+/retention:restore
+/retention:purge
+```
 
-- `/template-info`
-- `template_greet` custom tool
+## Pinning
 
-The tool demonstrates:
+Protect an item from expiry prompts:
 
-- TypeBox object parameters
-- a string enum schema via `StringEnum`
-- shared logic imported from `lib/greeting.ts`
+```txt
+/retention:pin
+/retention:unpin
+```
+
+## Data files
+
+After initialization, Pi Retention writes local files under the project:
+
+- `.pi/.pi-retention-project.yaml` — project manifest (preferred)
+- `.pi-retention-project.yaml` — legacy manifest path (still read when present)
+- `.pi-retention.yaml` — per-root sidecar
+- `.pi-retention.jsonl` — append-only usage log
+- `.pi-retention-trash/` — quarantine area
+
+## Extension surface
+
+`extensions/index.ts` registers only retention commands. This package does not ship skills, prompt templates, themes, or custom tools.

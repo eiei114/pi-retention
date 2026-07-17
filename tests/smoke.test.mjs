@@ -14,6 +14,10 @@ const publishWorkflow = await readFile(
   new URL("../.github/workflows/publish.yml", import.meta.url),
   "utf8",
 );
+const examplesDoc = await readFile(
+  new URL("../docs/examples.md", import.meta.url),
+  "utf8",
+);
 
 test("package declares only the extension runtime surface", () => {
   assert.deepEqual(packageJson.pi.extensions, ["./extensions"]);
@@ -29,6 +33,24 @@ test("package metadata points at pi-retention", () => {
 
 test("package uses public publish config", () => {
   assert.equal(packageJson.publishConfig.access, "public");
+});
+
+test("examples doc documents retention commands instead of template placeholders", () => {
+  const staleTemplateMarkers = [
+    "template-hello",
+    "extensions/hello.ts",
+    "example-skill",
+    "template-info",
+    "lib/greeting.ts",
+  ];
+
+  for (const marker of staleTemplateMarkers) {
+    assert.doesNotMatch(examplesDoc, new RegExp(marker));
+  }
+
+  assert.match(examplesDoc, /retention:init/);
+  assert.match(examplesDoc, /retention:report/);
+  assert.match(examplesDoc, /retention:confirm/);
 });
 
 test("template includes npm release workflow handoff", () => {
