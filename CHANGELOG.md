@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Bump package version to `0.1.6` for the next patch release.
+
 - Replace stale template placeholders in `docs/examples.md` with Pi Retention command and data-file examples.
 - Refresh `ROADMAP.md` with current release status, short-term maintenance goals, and a bounded (30–90 min) maintenance seed backlog.
 - Add Buy Me a Coffee sponsor button to README and native GitHub funding link via `.github/FUNDING.yml`.
