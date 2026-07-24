@@ -18,6 +18,10 @@ const examplesDoc = await readFile(
   new URL("../docs/examples.md", import.meta.url),
   "utf8",
 );
+const readme = await readFile(
+  new URL("../README.md", import.meta.url),
+  "utf8",
+);
 
 test("package declares only the extension runtime surface", () => {
   assert.deepEqual(packageJson.pi.extensions, ["./extensions"]);
@@ -33,6 +37,22 @@ test("package metadata points at pi-retention", () => {
 
 test("package uses public publish config", () => {
   assert.equal(packageJson.publishConfig.access, "public");
+});
+
+test("README pinned install example matches package version", () => {
+  const pinMatch = readme.match(
+    /pi install npm:pi-retention@(\d+\.\d+\.\d+)/,
+  );
+
+  assert.ok(
+    pinMatch,
+    "README should document a pinned npm install example",
+  );
+  assert.equal(
+    pinMatch[1],
+    packageJson.version,
+    "README pin example should match package.json version",
+  );
 });
 
 test("examples doc documents retention commands instead of template placeholders", () => {
