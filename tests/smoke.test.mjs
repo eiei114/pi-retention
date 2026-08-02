@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { execSync } from "node:child_process";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const packageJson = JSON.parse(
@@ -71,6 +72,24 @@ test("examples doc documents retention commands instead of template placeholders
   assert.match(examplesDoc, /retention:init/);
   assert.match(examplesDoc, /retention:report/);
   assert.match(examplesDoc, /retention:confirm/);
+});
+
+test("docs directory contains only git-tracked files", async () => {
+  const tracked = new Set(
+    execSync("git ls-files docs/", { encoding: "utf8" })
+      .trim()
+      .split("\n")
+      .filter(Boolean),
+  );
+  const onDisk = await readdir(new URL("../docs", import.meta.url));
+
+  for (const name of onDisk) {
+    const relativePath = `docs/${name}`;
+    assert.ok(
+      tracked.has(relativePath),
+      `${relativePath} exists on disk but is not tracked by git`,
+    );
+  }
 });
 
 test("template includes npm release workflow handoff", () => {
