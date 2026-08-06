@@ -71,6 +71,8 @@ acceptance criteria so the weekly maintenance seed planner can promote it into a
 backlog issue without re-scoping. Seeds are candidates, not commitments — pick
 one per maintenance window.
 
+<a id="seed-3"></a>
+
 ### SEED-3 — Add a `--due` filter and summary footer to `retention:report`
 
 - **Problem:** The report lists every tracked root with no way to narrow to due
@@ -87,6 +89,8 @@ one per maintenance window.
   - [ ] New tests in `tests/retention-core.test.mjs` cover the filtered path and
         the default (unchanged) path.
   - [ ] `npm run ci` passes.
+
+<a id="seed-4"></a>
 
 ### SEED-4 — Lifecycle integration test for quarantine → restore → purge
 
