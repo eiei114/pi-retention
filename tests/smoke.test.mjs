@@ -23,6 +23,10 @@ const readme = await readFile(
   new URL("../README.md", import.meta.url),
   "utf8",
 );
+const roadmap = await readFile(
+  new URL("../ROADMAP.md", import.meta.url),
+  "utf8",
+);
 
 test("package declares only the extension runtime surface", () => {
   assert.deepEqual(packageJson.pi.extensions, ["./extensions"]);
@@ -38,6 +42,34 @@ test("package metadata points at pi-retention", () => {
 
 test("package uses public publish config", () => {
   assert.equal(packageJson.publishConfig.access, "public");
+});
+
+test("ROADMAP release status matches package version", () => {
+  const packageVersionMatch = roadmap.match(
+    /\| `package\.json` version \| `(\d+\.\d+\.\d+)` \|/,
+  );
+  const npmVersionMatch = roadmap.match(
+    /\| Latest published on npm \| `(\d+\.\d+\.\d+)` \|/,
+  );
+
+  assert.ok(
+    packageVersionMatch,
+    "ROADMAP should document package.json version in release status table",
+  );
+  assert.ok(
+    npmVersionMatch,
+    "ROADMAP should document latest published npm version in release status table",
+  );
+  assert.equal(
+    packageVersionMatch[1],
+    packageJson.version,
+    "ROADMAP package.json version should match package.json",
+  );
+  assert.equal(
+    npmVersionMatch[1],
+    packageJson.version,
+    "ROADMAP npm version should match in-tree package.json version",
+  );
 });
 
 test("README pinned install example matches package version", () => {

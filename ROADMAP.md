@@ -9,11 +9,11 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.5` |
-| Latest published on npm | `0.1.5` |
-| Last dated `CHANGELOG.md` entry | `[0.1.4]` — 2026-06-26 (README alignment) |
-| In-tree, not yet dated in changelog | `0.1.5` (sponsor button + funding link) — see [SEED-1](#seed-1) |
-| Next planned version | `0.1.6` — maintenance/docs + a small report improvement |
+| `package.json` version | `0.1.7` |
+| Latest published on npm | `0.1.7` |
+| Last dated `CHANGELOG.md` entry | `[0.1.5]` — 2026-07-04 (sponsor button + funding link) |
+| In-tree, not yet dated in changelog | `## Unreleased` items (examples rewrite, roadmap refresh, Discord badge) |
+| Next planned version | `0.1.8` — lifecycle tests and report filters (see [SEED-3](#seed-3), [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
 
 The package is a **local-only** tracker. No cloud sync, no telemetry, no remote
@@ -43,13 +43,9 @@ reporting, and no unattended purge are planned for this MVP line.
 
 ## Short-term maintenance goals (next 2–3 releases)
 
-- **0.1.6** — Documentation accuracy pass and one small report improvement.
-  Close the gap between what the repo documents and what it ships (see
-  [SEED-1](#seed-1), [SEED-2](#seed-2), [SEED-3](#seed-3)). Docs-only where
-  possible; no behavior change unless a test backs it.
-- **0.1.7** — Lifecycle coverage. Add integration tests for the
-  quarantine → restore → purge path and settings.json sync so future refactors
-  of `lib/retention.ts` stay safe (see [SEED-4](#seed-4)).
+- **0.1.8** — Lifecycle coverage and report filters. Add integration tests for
+  the quarantine → restore → purge path (see [SEED-4](#seed-4)) and a `--due`
+  filter plus summary footer for `retention:report` (see [SEED-3](#seed-3)).
 - **0.2.0** — Optional batch review flow (explicitly **separate** from startup),
   if the single-candidate startup contract stays intact. Gated on real usage
   feedback before committing.
@@ -60,9 +56,6 @@ Each release continues to follow the existing guardrails: `npm run ci`
 
 ## Areas needing improvement
 
-- **Docs accuracy** — `docs/examples.md` still describes the removed template
-  scaffold and is the most visible drift ([SEED-2](#seed-2)). `CHANGELOG.md` is
-  missing a dated `0.1.5` entry ([SEED-1](#seed-1)).
 - **Test coverage** — core startup ordering and manifest-path resolution are
   well covered; the extension command layer and the quarantine/restore/purge
   filesystem lifecycle are not directly exercised ([SEED-4](#seed-4)).
@@ -78,34 +71,7 @@ acceptance criteria so the weekly maintenance seed planner can promote it into a
 backlog issue without re-scoping. Seeds are candidates, not commitments — pick
 one per maintenance window.
 
-### SEED-1 — Date the `0.1.5` CHANGELOG entry
-
-- **Problem:** `0.1.5` is published on npm, but `CHANGELOG.md` still lists the
-  sponsor-button change under `## Unreleased` with no dated `## [0.1.5]` section.
-- **Scope:** Docs only. No code or version bump (version already matches npm).
-- **Estimate:** ~30 min.
-- **Acceptance criteria:**
-  - [ ] `CHANGELOG.md` has a dated `## [0.1.5] - <YYYY-MM-DD>` section containing
-        the sponsor/funding change (date = sponsor-rollout commit `b5f3e18`).
-  - [ ] A fresh empty `## Unreleased` heading sits above `## [0.1.5]`.
-  - [ ] Latest dated entry version equals `package.json` `version` (`0.1.5`).
-  - [ ] `npm run ci` passes.
-
-### SEED-2 — Rewrite stale `docs/examples.md` for pi-retention
-
-- **Problem:** `docs/examples.md` documents the removed template scaffold
-  (`/template-hello`, `skills/example-skill`, `themes/`, `lib/greeting.ts`,
-  `template_greet`) instead of pi-retention. It is shipped in the npm tarball.
-- **Scope:** Docs only.
-- **Estimate:** ~45 min.
-- **Acceptance criteria:**
-  - [ ] `docs/examples.md` contains **no** references to `template-hello`,
-        `greeting`, `example-skill`, `example-theme`, or `template_greet`.
-  - [ ] Every command it references exists in `extensions/index.ts`
-        (`retention:init|report|confirm|restore|purge|pin|unpin`).
-  - [ ] It documents the data files (`.pi/.pi-retention-project.yaml`,
-        `.pi-retention.yaml`, `.pi-retention.jsonl`, `.pi-retention-trash/`).
-  - [ ] `npm run ci` passes; `npm pack --dry-run` still includes `docs/`.
+<a id="seed-3"></a>
 
 ### SEED-3 — Add a `--due` filter and summary footer to `retention:report`
 
@@ -123,6 +89,8 @@ one per maintenance window.
   - [ ] New tests in `tests/retention-core.test.mjs` cover the filtered path and
         the default (unchanged) path.
   - [ ] `npm run ci` passes.
+
+<a id="seed-4"></a>
 
 ### SEED-4 — Lifecycle integration test for quarantine → restore → purge
 
