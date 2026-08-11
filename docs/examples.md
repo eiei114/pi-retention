@@ -54,8 +54,8 @@ Protect an item from expiry prompts:
 
 After initialization, Pi Retention writes local files under the project:
 
-- `.pi/.pi-retention-project.yaml` — project manifest (preferred)
-- `.pi-retention-project.yaml` — legacy manifest path (still read when present)
+- `.pi/.pi-retention-project.yaml` — project manifest (canonical)
+- `.pi-retention-project.yaml` — legacy manifest path; automatically moved only when the canonical path does not already exist
 - `.pi-retention.yaml` — per-root sidecar
 - `.pi-retention.jsonl` — append-only usage log
 - `.pi-retention-trash/` — quarantine area

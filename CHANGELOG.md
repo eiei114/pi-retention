@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## [0.1.8] - 2026-08-11
+
+### Fixed
+
+- Automatically migrate the legacy root manifest to
+  `.pi/.pi-retention-project.yaml` on first access when the canonical path is
+  absent.
 
 ### Changed
-
-- Bump package version to `0.1.6` for the next patch release.
 
 - Replace stale template placeholders in `docs/examples.md` with Pi Retention command and data-file examples.
 - Refresh `ROADMAP.md` with current release status, short-term maintenance goals, and a bounded (30–90 min) maintenance seed backlog.
@@ -69,4 +73,3 @@ This project follows semantic versioning.
 - Initial Pi package template.
 - Example extension, Agent Skill, prompt, and theme.
 - CI and npm Trusted Publishing workflow.
-
