@@ -147,7 +147,10 @@ async function resolveManifestPath(projectRoot: string) {
   const preferred = getPreferredManifestPath(projectRoot);
   const legacy = getLegacyManifestPath(projectRoot);
   if (await readTextIfExists(preferred) !== undefined) return preferred;
-  if (await readTextIfExists(legacy) !== undefined) return legacy;
+  if (await readTextIfExists(legacy) !== undefined) {
+    await mkdir(dirname(preferred), { recursive: true });
+    await rename(legacy, preferred);
+  }
   return preferred;
 }
 

@@ -35,14 +35,23 @@ test("loadManifest prefers .pi/.pi-retention-project.yaml over legacy root file"
   assert.equal(manifest.updatedAt, "preferred");
 });
 
-test("loadManifest falls back to legacy root manifest", async () => {
+test("loadManifest migrates a legacy root manifest to the preferred path", async () => {
   const projectRoot = await mkdtemp(join(tmpdir(), "pi-retention-manifest-"));
   const legacy = getLegacyManifestPath(projectRoot);
+  const preferred = getPreferredManifestPath(projectRoot);
 
-  await writeFile(legacy, "version: 1\nupdatedAt: legacy-only\nrecords: []\n", "utf8");
+  await writeFile(
+    legacy,
+    "version: 1\nupdatedAt: legacy-only\ndefaults:\n  skillTtlDays: 14\n  extensionTtlDays: 45\nrecords:\n  - id: legacy\n    kind: skill\n    packageName: legacy-skill\n    displayName: Legacy Skill\n    rootPath: /tmp/legacy-skill\n    ttlDays: 14\n    usageCount: 3\n    lastUsedAt: 2026-01-01T00:00:00.000Z\n    dueAt: 2026-01-15T00:00:00.000Z\n    pinned: false\n    state: active\n",
+    "utf8",
+  );
 
   const manifest = await loadManifest(projectRoot);
   assert.equal(manifest.updatedAt, "legacy-only");
+  assert.equal(manifest.defaults.skillTtlDays, 14);
+  assert.equal(manifest.records[0].id, "legacy");
+  await access(preferred);
+  await assert.rejects(access(legacy));
 });
 
 test("saveManifest writes to preferred path for new projects", async () => {
@@ -59,7 +68,7 @@ test("saveManifest writes to preferred path for new projects", async () => {
   assert.match(text, /version: 1/);
 });
 
-test("saveManifest updates existing legacy manifest in place", async () => {
+test("saveManifest updates a migrated legacy manifest at the preferred path", async () => {
   const projectRoot = await mkdtemp(join(tmpdir(), "pi-retention-manifest-"));
   const preferred = getPreferredManifestPath(projectRoot);
   const legacy = getLegacyManifestPath(projectRoot);
@@ -70,8 +79,8 @@ test("saveManifest updates existing legacy manifest in place", async () => {
   manifest.records = [{ id: "demo", kind: "skill", packageName: "demo", displayName: "demo", rootPath: projectRoot, ttlDays: 30, usageCount: 0, lastUsedAt: "2026-01-01T00:00:00.000Z", dueAt: "2026-02-01T00:00:00.000Z", pinned: false, state: "active" }];
   await saveManifest(projectRoot, manifest);
 
-  await access(legacy);
-  await assert.rejects(access(preferred));
-  const text = await readFile(legacy, "utf8");
+  await access(preferred);
+  await assert.rejects(access(legacy));
+  const text = await readFile(preferred, "utf8");
   assert.match(text, /displayName: demo/);
 });

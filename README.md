@@ -48,8 +48,8 @@ See [`ROADMAP.md`](ROADMAP.md) for MVP scope and non-goals.
 
 ## Data files
 
-- `.pi/.pi-retention-project.yaml` — project manifest (preferred)
-- `.pi-retention-project.yaml` — legacy project manifest (still read when present)
+- `.pi/.pi-retention-project.yaml` — project manifest (canonical)
+- `.pi-retention-project.yaml` — legacy project manifest; automatically moved to the canonical path on first access
 - `.pi-retention.yaml` — per-root sidecar
 - `.pi-retention.jsonl` — append-only usage log
 - `.pi-retention-trash/` — quarantine area
@@ -65,7 +65,7 @@ pi install npm:pi-retention
 Pin a specific version when you want reproducible installs:
 
 ```bash
-pi install npm:pi-retention@0.1.7
+pi install npm:pi-retention@0.1.8
 ```
 
 Install into the current project instead of your user Pi settings:

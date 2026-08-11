@@ -9,11 +9,11 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.7` |
-| Latest published on npm | `0.1.7` |
+| `package.json` version | `0.1.8` |
+| Latest published on npm | `0.1.8` |
 | Last dated `CHANGELOG.md` entry | `[0.1.5]` — 2026-07-04 (sponsor button + funding link) |
 | In-tree, not yet dated in changelog | `## Unreleased` items (examples rewrite, roadmap refresh, Discord badge) |
-| Next planned version | `0.1.8` — lifecycle tests and report filters (see [SEED-3](#seed-3), [SEED-4](#seed-4)) |
+| Next planned version | `0.1.9` — lifecycle tests and report filters (see [SEED-3](#seed-3), [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
 
 The package is a **local-only** tracker. No cloud sync, no telemetry, no remote
@@ -32,7 +32,7 @@ reporting, and no unattended purge are planned for this MVP line.
 - Quarantined items are excluded from startup prompts (`Q` in reports)
 - Manual `restore`, `purge`, `pin`, and `unpin` commands
 - Project-local quarantine trash layout (`.pi-retention-trash/`)
-- Preferred manifest path `.pi/.pi-retention-project.yaml` with legacy fallback
+- Preferred manifest path `.pi/.pi-retention-project.yaml` with automatic migration from the legacy root path
 
 ### Non-goals (current MVP line)
 
@@ -108,17 +108,17 @@ one per maintenance window.
   - [ ] It asserts self-protected roots cannot be quarantined.
   - [ ] `npm run ci` passes.
 
-### SEED-5 — Clarify manifest path precedence in README and `docs/examples.md`
+### SEED-5 — Migrate legacy project manifests to `.pi/`
 
-- **Problem:** PR #19 introduced `.pi/.pi-retention-project.yaml` as the
-  preferred path with a legacy fallback, but the user-facing docs do not state
-  the precedence explicitly. (`tests/manifest-path.test.mjs` already covers it.)
-- **Scope:** Docs only.
-- **Estimate:** ~30 min.
+- **Problem:** Existing projects can still have the legacy root manifest after
+  the preferred `.pi/.pi-retention-project.yaml` path was introduced.
+- **Scope:** Manifest path handling, regression tests, and user-facing docs.
+- **Estimate:** ~60 min.
 - **Acceptance criteria:**
-  - [ ] README "Data files" and `docs/examples.md` both state: preferred
-        `.pi/.pi-retention-project.yaml`, with `.pi-retention-project.yaml`
-        still read as a legacy fallback.
+  - [ ] README "Data files" and `docs/examples.md` both state that
+        `.pi/.pi-retention-project.yaml` is canonical and the legacy root file
+        is automatically moved on first access.
+  - [ ] `loadManifest` migrates the legacy file without losing its contents.
   - [ ] No claim contradicts `resolveManifestPath` in `lib/retention.ts`.
   - [ ] `npm run ci` passes.
 
