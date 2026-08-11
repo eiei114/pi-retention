@@ -45,12 +45,14 @@ test("loadManifest migrates a legacy root manifest to the preferred path", async
     "version: 1\nupdatedAt: legacy-only\ndefaults:\n  skillTtlDays: 14\n  extensionTtlDays: 45\nrecords:\n  - id: legacy\n    kind: skill\n    packageName: legacy-skill\n    displayName: Legacy Skill\n    rootPath: /tmp/legacy-skill\n    ttlDays: 14\n    usageCount: 3\n    lastUsedAt: 2026-01-01T00:00:00.000Z\n    dueAt: 2026-01-15T00:00:00.000Z\n    pinned: false\n    state: active\n",
     "utf8",
   );
+  const legacyText = await readFile(legacy, "utf8");
 
   const manifest = await loadManifest(projectRoot);
   assert.equal(manifest.updatedAt, "legacy-only");
   assert.equal(manifest.defaults.skillTtlDays, 14);
   assert.equal(manifest.records[0].id, "legacy");
   await access(preferred);
+  assert.equal(await readFile(preferred, "utf8"), legacyText);
   await assert.rejects(access(legacy));
 });
 

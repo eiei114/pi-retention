@@ -11,8 +11,8 @@
 |---|---|
 | `package.json` version | `0.1.8` |
 | Latest published on npm | `0.1.8` |
-| Last dated `CHANGELOG.md` entry | `[0.1.5]` — 2026-07-04 (sponsor button + funding link) |
-| In-tree, not yet dated in changelog | `## Unreleased` items (examples rewrite, roadmap refresh, Discord badge) |
+| Last dated `CHANGELOG.md` entry | `[0.1.8]` — 2026-08-11 (legacy manifest migration) |
+| In-tree, not yet dated in changelog | None |
 | Next planned version | `0.1.9` — lifecycle tests and report filters (see [SEED-3](#seed-3), [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
 
@@ -43,7 +43,7 @@ reporting, and no unattended purge are planned for this MVP line.
 
 ## Short-term maintenance goals (next 2–3 releases)
 
-- **0.1.8** — Lifecycle coverage and report filters. Add integration tests for
+- **0.1.9** — Lifecycle coverage and report filters. Add integration tests for
   the quarantine → restore → purge path (see [SEED-4](#seed-4)) and a `--due`
   filter plus summary footer for `retention:report` (see [SEED-3](#seed-3)).
 - **0.2.0** — Optional batch review flow (explicitly **separate** from startup),
@@ -63,6 +63,21 @@ Each release continues to follow the existing guardrails: `npm run ci`
   report grows linearly with tracked roots ([SEED-3](#seed-3)).
 - **Dependency hygiene** — Dependabot keeps the `npm-dev-minor-patch` group
   current; keep merging the open group PRs promptly to reduce conflict surface.
+
+## Completed maintenance seeds
+
+<a id="seed-5"></a>
+
+### SEED-5 — Migrate legacy project manifests to `.pi/`
+
+- **Status:** Shipped in `0.1.8`.
+- **Acceptance criteria:**
+  - [x] README "Data files" and `docs/examples.md` state that
+        `.pi/.pi-retention-project.yaml` is canonical and the legacy root file
+        is automatically moved only when the canonical path does not exist.
+  - [x] `loadManifest` migrates the legacy file without losing its contents.
+  - [x] Documentation matches `resolveManifestPath` in `lib/retention.ts`.
+  - [x] `npm run ci` passes.
 
 ## Maintenance seed backlog
 
@@ -106,20 +121,6 @@ one per maintenance window.
         `.pi/settings.json`; restore re-adds the entry and clears
         `quarantinePath`; purge deletes the trash entry.
   - [ ] It asserts self-protected roots cannot be quarantined.
-  - [ ] `npm run ci` passes.
-
-### SEED-5 — Migrate legacy project manifests to `.pi/`
-
-- **Problem:** Existing projects can still have the legacy root manifest after
-  the preferred `.pi/.pi-retention-project.yaml` path was introduced.
-- **Scope:** Manifest path handling, regression tests, and user-facing docs.
-- **Estimate:** ~60 min.
-- **Acceptance criteria:**
-  - [ ] README "Data files" and `docs/examples.md` both state that
-        `.pi/.pi-retention-project.yaml` is canonical and the legacy root file
-        is automatically moved on first access.
-  - [ ] `loadManifest` migrates the legacy file without losing its contents.
-  - [ ] No claim contradicts `resolveManifestPath` in `lib/retention.ts`.
   - [ ] `npm run ci` passes.
 
 ## How seeds are picked

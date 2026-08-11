@@ -49,7 +49,7 @@ See [`ROADMAP.md`](ROADMAP.md) for MVP scope and non-goals.
 ## Data files
 
 - `.pi/.pi-retention-project.yaml` — project manifest (canonical)
-- `.pi-retention-project.yaml` — legacy project manifest; automatically moved to the canonical path on first access
+- `.pi-retention-project.yaml` — legacy project manifest; automatically moved only when the canonical path does not already exist
 - `.pi-retention.yaml` — per-root sidecar
 - `.pi-retention.jsonl` — append-only usage log
 - `.pi-retention-trash/` — quarantine area

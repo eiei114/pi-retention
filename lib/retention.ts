@@ -1,4 +1,5 @@
-import { mkdir, readFile, rename, rm, writeFile, cp } from "node:fs/promises";
+import { constants } from "node:fs";
+import { copyFile, mkdir, readFile, rename, rm, writeFile, cp } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
@@ -149,7 +150,16 @@ async function resolveManifestPath(projectRoot: string) {
   if (await readTextIfExists(preferred) !== undefined) return preferred;
   if (await readTextIfExists(legacy) !== undefined) {
     await mkdir(dirname(preferred), { recursive: true });
-    await rename(legacy, preferred);
+    try {
+      await copyFile(legacy, preferred, constants.COPYFILE_EXCL);
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if ((code === "EEXIST" || code === "ENOENT") && await readTextIfExists(preferred) !== undefined) {
+        return preferred;
+      }
+      throw error;
+    }
+    await rm(legacy, { force: true });
   }
   return preferred;
 }
