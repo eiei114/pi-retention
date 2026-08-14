@@ -61,8 +61,9 @@ Each release continues to follow the existing guardrails: `npm run ci`
   filesystem lifecycle are not directly exercised ([SEED-4](#seed-4)).
 - **Report richness** — `formatReport` has no filtering or summary footer; the
   report grows linearly with tracked roots ([SEED-3](#seed-3)).
-- **Dependency hygiene** — Dependabot keeps the `npm-dev-minor-patch` group
-  current; keep merging the open group PRs promptly to reduce conflict surface.
+- **Dependency hygiene** — Dependabot keeps the weekly `all-dependencies` group
+  current (npm and GitHub Actions); keep merging the open group PRs promptly to
+  reduce conflict surface.
 
 ## Completed maintenance seeds
 

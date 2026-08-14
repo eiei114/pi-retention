@@ -27,6 +27,10 @@ const roadmap = await readFile(
   new URL("../ROADMAP.md", import.meta.url),
   "utf8",
 );
+const dependabotConfig = await readFile(
+  new URL("../.github/dependabot.yml", import.meta.url),
+  "utf8",
+);
 
 test("package declares only the extension runtime surface", () => {
   assert.deepEqual(packageJson.pi.extensions, ["./extensions"]);
@@ -122,6 +126,28 @@ test("docs directory contains only git-tracked files", async () => {
       `${relativePath} exists on disk but is not tracked by git`,
     );
   }
+});
+
+test("ROADMAP documents the active Dependabot multi-ecosystem group", () => {
+  const groupMatch = dependabotConfig.match(
+    /multi-ecosystem-groups:\s*\n\s+([a-z0-9-]+):/,
+  );
+
+  assert.ok(
+    groupMatch,
+    "dependabot.yml should declare a multi-ecosystem group",
+  );
+
+  const groupName = groupMatch[1];
+  assert.ok(
+    roadmap.includes(`\`${groupName}\``),
+    `ROADMAP should reference the Dependabot group \`${groupName}\``,
+  );
+  assert.doesNotMatch(
+    roadmap,
+    /npm-dev-minor-patch/,
+    "ROADMAP should not reference the removed npm-dev-minor-patch group",
+  );
 });
 
 test("template includes npm release workflow handoff", () => {
