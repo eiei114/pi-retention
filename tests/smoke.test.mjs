@@ -139,6 +139,27 @@ test("ROADMAP documents the active Dependabot multi-ecosystem group", () => {
   );
 
   const groupName = groupMatch[1];
+  assert.match(
+    dependabotConfig,
+    new RegExp(
+      `multi-ecosystem-groups:\\s*\\n\\s+${groupName}:[\\s\\S]*?schedule:\\s*\\n\\s+interval:\\s*weekly`,
+    ),
+    `Dependabot group ${groupName} should keep a weekly schedule`,
+  );
+  assert.match(
+    dependabotConfig,
+    new RegExp(
+      `package-ecosystem:\\s*npm[\\s\\S]*?multi-ecosystem-group:\\s*${groupName}`,
+    ),
+    `npm updates should use multi-ecosystem group ${groupName}`,
+  );
+  assert.match(
+    dependabotConfig,
+    new RegExp(
+      `package-ecosystem:\\s*github-actions[\\s\\S]*?multi-ecosystem-group:\\s*${groupName}`,
+    ),
+    `github-actions updates should use multi-ecosystem group ${groupName}`,
+  );
   assert.ok(
     roadmap.includes(`\`${groupName}\``),
     `ROADMAP should reference the Dependabot group \`${groupName}\``,
