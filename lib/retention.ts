@@ -54,6 +54,10 @@ export interface ReportStats {
   protected: number;
 }
 
+export interface FormatReportOptions {
+  dueOnly?: boolean;
+}
+
 export const SELF_ROOT = normalize(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
 
 function nowIso() {
@@ -365,20 +369,26 @@ export function selectQuarantinedRecord(records: RetentionRecord[]) {
   return records.filter((record) => record.state === "quarantined").sort((a, b) => a.displayName.localeCompare(b.displayName))[0];
 }
 
-export function recordStats(records: RetentionRecord[]): ReportStats {
+function isDueRecord(record: RetentionRecord, now = nowIso()) {
+  return record.state === "active" && !record.pinned && new Date(record.dueAt).getTime() <= new Date(now).getTime();
+}
+
+export function recordStats(records: RetentionRecord[], now = nowIso()): ReportStats {
   const total = records.length;
   const active = records.filter((record) => record.state === "active").length;
   const quarantined = records.filter((record) => record.state === "quarantined").length;
-  const due = records.filter((record) => record.state === "active" && !record.pinned && new Date(record.dueAt).getTime() <= Date.now()).length;
+  const due = records.filter((record) => isDueRecord(record, now)).length;
   const protectedCount = records.filter((record) => record.pinned || normalizeRootPath(record.rootPath) === SELF_ROOT).length;
   return { total, active, quarantined, due, protected: protectedCount };
 }
 
-export function formatReport(manifest: RetentionManifest, now = nowIso()) {
-  const stats = recordStats(manifest.records);
+export function formatReport(manifest: RetentionManifest, now = nowIso(), options: FormatReportOptions = {}) {
+  const stats = recordStats(manifest.records, now);
   const startupCandidate = selectOldestExpiredRecord(manifest.records, now);
+  const rows = options.dueOnly ? manifest.records.filter((record) => isDueRecord(record, now)) : manifest.records;
+  const title = options.dueOnly ? `Retention report: ${stats.due} due of ${stats.total} tracked` : `Retention report: ${stats.total} tracked`;
   const lines = [
-    `Retention report: ${stats.total} tracked`,
+    title,
     `active=${stats.active} quarantined=${stats.quarantined} due=${stats.due} protected=${stats.protected}`,
     "status: A=active !=due P=pinned Q=quarantined",
     "",
@@ -389,7 +399,7 @@ export function formatReport(manifest: RetentionManifest, now = nowIso()) {
     lines.push("");
   }
 
-  for (const record of manifest.records.sort(compareStartupCandidates)) {
+  for (const record of [...rows].sort(compareStartupCandidates)) {
     const status = recordReportStatus(record, now);
     const marker = startupCandidate?.id === record.id ? ">" : " ";
     const root = record.state === "quarantined" && record.quarantinePath ? record.quarantinePath : record.rootPath;
@@ -398,8 +408,13 @@ export function formatReport(manifest: RetentionManifest, now = nowIso()) {
     );
   }
 
-  if (manifest.records.length === 0) {
-    lines.push("(no local roots tracked)");
+  if (rows.length === 0) {
+    lines.push(options.dueOnly ? "(no due roots tracked)" : "(no local roots tracked)");
+  }
+
+  if (options.dueOnly) {
+    lines.push("");
+    lines.push(`due today: ${stats.due}`);
   }
 
   return lines.join("\n");
