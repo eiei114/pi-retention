@@ -20,6 +20,10 @@ function recordLabel(record: Pick<RetentionRecord, "displayName" | "kind" | "sta
   return `${record.displayName} · ${record.kind} · ${record.state} · ${pin} · ${record.rootPath}`;
 }
 
+function hasFlag(args: unknown, flag: string) {
+  return typeof args === "string" && args.split(/\s+/).includes(flag);
+}
+
 async function chooseRecord(
   ctx: { hasUI: boolean; ui: { select: (title: string, options: string[]) => Promise<string | undefined> } },
   title: string,
@@ -84,12 +88,12 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("retention:report", {
-    description: "Show the Pi Retention report",
-    handler: async (_args, ctx) => {
+    description: "Show the Pi Retention report (pass --due to show due items only)",
+    handler: async (args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
       const manifest = await loadProjectRetention(projectRoot);
       await syncRecordUsage(manifest, PACKAGE_NAME);
-      const text = formatReport(manifest);
+      const text = formatReport(manifest, undefined, { dueOnly: hasFlag(args, "--due") });
       await saveManifestAndSidecars(projectRoot, manifest);
       ctx.ui.notify(text, "info");
     },
