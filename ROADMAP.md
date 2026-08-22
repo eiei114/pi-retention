@@ -9,9 +9,9 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.8` |
-| Latest published on npm | `0.1.8` |
-| Last dated `CHANGELOG.md` entry | `[0.1.8]` — 2026-08-11 (legacy manifest migration) |
+| `package.json` version | `0.1.9` |
+| Latest published on npm | `0.1.9` |
+| Last dated `CHANGELOG.md` entry | `[0.1.9]` — 2026-08-22 (managed OSS dependency batch) |
 | In-tree, not yet dated in changelog | None |
 | Next planned version | `0.1.9` — lifecycle tests and report filters (see [SEED-3](#seed-3), [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
