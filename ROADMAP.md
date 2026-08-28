@@ -123,4 +123,6 @@ one per maintenance window.
 2. One seed is promoted to a backlog issue per maintenance window, scoped to the
    listed acceptance criteria (no re-scoping needed).
 3. When a seed ships, move it out of this backlog and update the relevant
-   release goal above. Keep at least three live candidates here at all times.
+   release goal above. Keep at least one live candidate here at all times; the
+   current backlog intentionally retains SEED-4 as the sole candidate for the
+   next planned release while optional work remains gated on usage feedback.
