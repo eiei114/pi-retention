@@ -13,7 +13,7 @@
 | Latest published on npm | `0.1.9` |
 | Last dated `CHANGELOG.md` entry | `[0.1.9]` — 2026-08-22 (managed OSS dependency batch) |
 | In-tree, not yet dated in changelog | None |
-| Next planned version | `0.1.9` — lifecycle tests and report filters (see [SEED-3](#seed-3), [SEED-4](#seed-4)) |
+| Next planned version | `0.1.10` — lifecycle integration tests (see [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
 
 The package is a **local-only** tracker. No cloud sync, no telemetry, no remote
@@ -43,9 +43,8 @@ reporting, and no unattended purge are planned for this MVP line.
 
 ## Short-term maintenance goals (next 2–3 releases)
 
-- **0.1.9** — Lifecycle coverage and report filters. Add integration tests for
-  the quarantine → restore → purge path (see [SEED-4](#seed-4)) and a `--due`
-  filter plus summary footer for `retention:report` (see [SEED-3](#seed-3)).
+- **0.1.10** — Lifecycle coverage. Add integration tests for the quarantine →
+  restore → purge path (see [SEED-4](#seed-4)).
 - **0.2.0** — Optional batch review flow (explicitly **separate** from startup),
   if the single-candidate startup contract stays intact. Gated on real usage
   feedback before committing.
@@ -59,13 +58,25 @@ Each release continues to follow the existing guardrails: `npm run ci`
 - **Test coverage** — core startup ordering and manifest-path resolution are
   well covered; the extension command layer and the quarantine/restore/purge
   filesystem lifecycle are not directly exercised ([SEED-4](#seed-4)).
-- **Report richness** — `formatReport` has no filtering or summary footer; the
-  report grows linearly with tracked roots ([SEED-3](#seed-3)).
 - **Dependency hygiene** — Dependabot keeps the weekly `all-dependencies` group
   current (npm and GitHub Actions); keep merging the open group PRs promptly to
   reduce conflict surface.
 
 ## Completed maintenance seeds
+
+<a id="seed-3"></a>
+
+### SEED-3 — Add a `--due` filter and summary footer to `retention:report`
+
+- **Status:** Shipped in `0.1.9`.
+- **Acceptance criteria:**
+  - [x] `formatReport` accepts an optional filter (e.g. `{ dueOnly?: boolean }`)
+        without changing default output.
+  - [x] `retention:report` exposes a `--due` flag wired through the command handler.
+  - [x] Report ends with a one-line summary (e.g. `due today: N`).
+  - [x] Tests in `tests/retention-core.test.mjs` cover the filtered path and the
+        default (unchanged) path.
+  - [x] `npm run ci` passes.
 
 <a id="seed-5"></a>
 
@@ -86,25 +97,6 @@ Each seed is intentionally scoped to **30–90 minutes** and lists concrete
 acceptance criteria so the weekly maintenance seed planner can promote it into a
 backlog issue without re-scoping. Seeds are candidates, not commitments — pick
 one per maintenance window.
-
-<a id="seed-3"></a>
-
-### SEED-3 — Add a `--due` filter and summary footer to `retention:report`
-
-- **Problem:** The report lists every tracked root with no way to narrow to due
-  items, and no compact summary line beyond the existing counts. Listed under
-  MVP "Next candidates" (richer report filters and summaries).
-- **Scope:** Small feature + tests. Behavior-preserving when no flag is passed.
-- **Estimate:** ~60 min.
-- **Acceptance criteria:**
-  - [ ] `formatReport` accepts an optional filter (e.g. `{ dueOnly?: boolean }`)
-        without changing default output.
-  - [ ] `retention:report` exposes a `--due` flag (or equivalent) wired through
-        the command handler.
-  - [ ] Report ends with a one-line summary (e.g. `due today: N`).
-  - [ ] New tests in `tests/retention-core.test.mjs` cover the filtered path and
-        the default (unchanged) path.
-  - [ ] `npm run ci` passes.
 
 <a id="seed-4"></a>
 
@@ -131,4 +123,6 @@ one per maintenance window.
 2. One seed is promoted to a backlog issue per maintenance window, scoped to the
    listed acceptance criteria (no re-scoping needed).
 3. When a seed ships, move it out of this backlog and update the relevant
-   release goal above. Keep at least three live candidates here at all times.
+   release goal above. Keep at least one live candidate here at all times; the
+   current backlog intentionally retains SEED-4 as the sole candidate for the
+   next planned release while optional work remains gated on usage feedback.

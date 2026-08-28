@@ -40,7 +40,7 @@ See [`ROADMAP.md`](ROADMAP.md) for MVP scope and non-goals.
 ## Commands
 
 - `retention:init` — initialize the manifest for the current project
-- `retention:report` — show all tracked roots
+- `retention:report` — show all tracked roots (pass `--due` to list due items only)
 - `retention:confirm` — quarantine the oldest expired candidate
 - `retention:restore` — restore one quarantined item
 - `retention:purge` — permanently delete one quarantined item

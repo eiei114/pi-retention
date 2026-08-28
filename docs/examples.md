@@ -24,6 +24,12 @@ Show active, protected, quarantined, and due items:
 /retention:report
 ```
 
+Filter to due items only:
+
+```txt
+/retention:report --due
+```
+
 The report uses the same ordering as the startup prompt: earliest `dueAt`, then oldest `lastUsedAt`.
 
 ## Quarantine workflow

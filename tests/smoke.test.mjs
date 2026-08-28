@@ -171,6 +171,26 @@ test("ROADMAP documents the active Dependabot multi-ecosystem group", () => {
   );
 });
 
+test("ROADMAP backlog excludes shipped SEED-3 report filter", () => {
+  const backlogSection = roadmap.split("## Maintenance seed backlog")[1] ?? "";
+
+  assert.doesNotMatch(
+    backlogSection,
+    /### SEED-3/,
+    "Shipped SEED-3 should not remain in the maintenance seed backlog",
+  );
+  assert.match(
+    roadmap,
+    /### SEED-3[\s\S]*?\*\*Status:\*\* Shipped in `0\.1\.9`/,
+    "ROADMAP should record SEED-3 as shipped in 0.1.9",
+  );
+  assert.doesNotMatch(
+    roadmap,
+    /formatReport has no filtering/,
+    "ROADMAP should not claim report filters are missing after SEED-3 shipped",
+  );
+});
+
 test("template includes npm release workflow handoff", () => {
   assert.match(autoReleaseWorkflow, /actions:\s*write/);
   assert.match(autoReleaseWorkflow, /contents:\s*write/);
