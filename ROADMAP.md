@@ -57,7 +57,11 @@ Each release continues to follow the existing guardrails: `npm run ci`
 
 - **Test coverage** — core startup ordering and manifest-path resolution are
   well covered; the extension command layer and the quarantine/restore/purge
-  filesystem lifecycle are not directly exercised ([SEED-4](#seed-4)).
+  filesystem lifecycle are not directly exercised ([SEED-4](#seed-4),
+  [SEED-6](#seed-6)).
+- **Planner guardrails** — the backlog must keep at least three live seeds so
+  the weekly maintenance seed planner can promote work without re-scoping
+  ([SEED-7](#seed-7)).
 - **Dependency hygiene** — Dependabot keeps the weekly `all-dependencies` group
   current (npm and GitHub Actions); keep merging the open group PRs promptly to
   reduce conflict surface.
@@ -116,6 +120,43 @@ one per maintenance window.
   - [ ] It asserts self-protected roots cannot be quarantined.
   - [ ] `npm run ci` passes.
 
+<a id="seed-6"></a>
+
+### SEED-6 — Unit-test extension command flag parsing (`hasFlag`)
+
+- **Problem:** `retention:report --due` depends on a private `hasFlag` helper in
+  `extensions/index.ts`. Core report filtering is tested in
+  `tests/retention-core.test.mjs`, but the extension argument parser has no
+  direct coverage, so a refactor could break `--due` wiring without CI catching
+  it.
+- **Scope:** Tests and a small export/move only. No command behavior change
+  unless a test reveals a bug.
+- **Estimate:** ~45 min.
+- **Acceptance criteria:**
+  - [ ] `hasFlag` lives in a testable module (e.g. `lib/flags.ts`) and is
+        imported by `extensions/index.ts`.
+  - [ ] A new test file covers positive, negative, and multi-token argument
+        strings (including `--due`).
+  - [ ] Default `retention:report` output remains unchanged.
+  - [ ] `npm run ci` passes.
+
+<a id="seed-7"></a>
+
+### SEED-7 — Smoke test: ROADMAP backlog must list ≥3 live seeds
+
+- **Problem:** The weekly maintenance seed planner promotes one seed per window
+  from this backlog. When fewer than three candidates exist, promotion stalls
+  and roadmap-driven seeding issues recur (e.g. missing bounded micro tasks).
+- **Scope:** Test only. No production code change.
+- **Estimate:** ~30 min.
+- **Acceptance criteria:**
+  - [ ] `tests/smoke.test.mjs` counts `### SEED-*` headings under
+        `## Maintenance seed backlog` and asserts the count is ≥ 3.
+  - [ ] Each counted seed includes an `**Estimate:**` line scoped to ~30–90 min.
+  - [ ] Shipped seeds under `## Completed maintenance seeds` are excluded from
+        the count.
+  - [ ] `npm run ci` passes.
+
 ## How seeds are picked
 
 1. The weekly maintenance seed planner reads this backlog and the current
@@ -123,6 +164,7 @@ one per maintenance window.
 2. One seed is promoted to a backlog issue per maintenance window, scoped to the
    listed acceptance criteria (no re-scoping needed).
 3. When a seed ships, move it out of this backlog and update the relevant
-   release goal above. Keep at least one live candidate here at all times; the
-   current backlog intentionally retains SEED-4 as the sole candidate for the
-   next planned release while optional work remains gated on usage feedback.
+   release goal above. Keep at least three live candidates here so the weekly
+   seed planner can pick without re-scoping; SEED-4 remains the primary target
+   for `0.1.10`, with SEED-6 and SEED-7 covering extension parsing coverage
+   and planner guardrails.
