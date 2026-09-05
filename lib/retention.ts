@@ -196,10 +196,12 @@ export function resolvePackageEntry(entry: string, projectRoot: string) {
   return normalizeRootPath(isAbsolute(entry) ? entry : resolve(projectRoot, entry));
 }
 
-async function readPackageMetadata(rootPath: string) {
-  const pkg = await readJsonIfExists<{ name?: string; pi?: { extensions?: unknown[]; skills?: unknown[] } }>(
-    join(rootPath, "package.json"),
-  );
+type PackageJsonMetadata = {
+  name?: string;
+  pi?: { extensions?: unknown[]; skills?: unknown[] };
+};
+
+export function parsePackageMetadata(pkg: PackageJsonMetadata | undefined, rootPath: string) {
   const packageName = pkg?.name?.trim() || basename(rootPath);
   const kind: RetentionKind = (pkg?.pi?.skills?.length ?? 0) > 0 ? "skill" : "extension";
   return { packageName, kind };
@@ -218,10 +220,10 @@ export async function discoverPackages(projectRoot: string): Promise<PackageDisc
     const rootPath = resolvePackageEntry(entry, projectRoot);
     if (seen.has(rootPath)) continue;
 
-    const pkgJson = await readJsonIfExists<{ name?: string }>(join(rootPath, "package.json"));
+    const pkgJson = await readJsonIfExists<PackageJsonMetadata>(join(rootPath, "package.json"));
     if (!pkgJson) continue;
 
-    const { packageName, kind } = await readPackageMetadata(rootPath);
+    const { packageName, kind } = parsePackageMetadata(pkgJson, rootPath);
     const displayName = packageName;
 
     discoveries.push({
@@ -563,4 +565,10 @@ export async function initializeProject(projectRoot: string) {
 
 export async function loadProjectRetention(projectRoot: string) {
   return hydrateManifest(projectRoot);
+}
+
+export async function loadSyncedProjectRetention(projectRoot: string, toolName = PACKAGE_NAME) {
+  const manifest = await loadProjectRetention(projectRoot);
+  await syncRecordUsage(manifest, toolName);
+  return manifest;
 }
