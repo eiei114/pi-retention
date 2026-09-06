@@ -4,7 +4,7 @@ import {
   formatReport,
   getProjectRoot,
   initializeProject,
-  loadProjectRetention,
+  loadSyncedProjectRetention,
   purgeRecord,
   quarantineRecord,
   restoreRecord,
@@ -68,7 +68,7 @@ export default function (pi: ExtensionAPI) {
     if (!toolName) return undefined;
 
     const projectRoot = getProjectRoot(ctx.cwd);
-    const manifest = await loadProjectRetention(projectRoot);
+    const manifest = await loadSyncedProjectRetention(projectRoot);
     const updated = await syncRecordUsage(manifest, toolName);
     if (!updated) return undefined;
 
@@ -91,8 +91,7 @@ export default function (pi: ExtensionAPI) {
     description: "Show the Pi Retention report (pass --due to show due items only)",
     handler: async (args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
-      const manifest = await loadProjectRetention(projectRoot);
-      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const manifest = await loadSyncedProjectRetention(projectRoot);
       const text = formatReport(manifest, undefined, { dueOnly: hasFlag(args, "--due") });
       await saveManifestAndSidecars(projectRoot, manifest);
       ctx.ui.notify(text, "info");
@@ -103,8 +102,7 @@ export default function (pi: ExtensionAPI) {
     description: "Quarantine the oldest expired candidate",
     handler: async (_args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
-      const manifest = await loadProjectRetention(projectRoot);
-      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const manifest = await loadSyncedProjectRetention(projectRoot);
       const candidate = selectOldestExpiredRecord(manifest.records);
       if (!candidate) {
         await saveManifestAndSidecars(projectRoot, manifest);
@@ -131,8 +129,7 @@ export default function (pi: ExtensionAPI) {
     description: "Restore one quarantined item",
     handler: async (_args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
-      const manifest = await loadProjectRetention(projectRoot);
-      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const manifest = await loadSyncedProjectRetention(projectRoot);
       const candidate = await chooseRecord(ctx, "Restore which item?", manifest.records.filter((record) => record.state === "quarantined"));
       if (!candidate) {
         await saveManifestAndSidecars(projectRoot, manifest);
@@ -149,8 +146,7 @@ export default function (pi: ExtensionAPI) {
     description: "Permanently delete one quarantined item",
     handler: async (_args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
-      const manifest = await loadProjectRetention(projectRoot);
-      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const manifest = await loadSyncedProjectRetention(projectRoot);
       const candidate = await chooseRecord(ctx, "Purge which quarantined item?", manifest.records.filter((record) => record.state === "quarantined"));
       if (!candidate) {
         await saveManifestAndSidecars(projectRoot, manifest);
@@ -171,8 +167,7 @@ export default function (pi: ExtensionAPI) {
     description: "Pin one tracked item",
     handler: async (_args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
-      const manifest = await loadProjectRetention(projectRoot);
-      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const manifest = await loadSyncedProjectRetention(projectRoot);
       const candidate = await chooseRecord(ctx, "Pin which item?", manifest.records.filter((record) => record.state === "active" && !record.pinned));
       if (!candidate) {
         await saveManifestAndSidecars(projectRoot, manifest);
@@ -189,8 +184,7 @@ export default function (pi: ExtensionAPI) {
     description: "Unpin one tracked item",
     handler: async (_args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
-      const manifest = await loadProjectRetention(projectRoot);
-      await syncRecordUsage(manifest, PACKAGE_NAME);
+      const manifest = await loadSyncedProjectRetention(projectRoot);
       const candidate = await chooseRecord(ctx, "Unpin which item?", manifest.records.filter((record) => record.state === "active" && record.pinned));
       if (!candidate) {
         await saveManifestAndSidecars(projectRoot, manifest);
