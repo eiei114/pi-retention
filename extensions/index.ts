@@ -14,14 +14,11 @@ import {
   PACKAGE_NAME,
   type RetentionRecord,
 } from "../lib/retention.ts";
+import { hasFlag } from "../lib/flags.ts";
 
 function recordLabel(record: Pick<RetentionRecord, "displayName" | "kind" | "state" | "pinned" | "rootPath">) {
   const pin = record.pinned ? "pin" : "free";
   return `${record.displayName} · ${record.kind} · ${record.state} · ${pin} · ${record.rootPath}`;
-}
-
-function hasFlag(args: unknown, flag: string) {
-  return typeof args === "string" && args.split(/\s+/).includes(flag);
 }
 
 async function chooseRecord(
