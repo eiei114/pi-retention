@@ -171,6 +171,36 @@ test("ROADMAP documents the active Dependabot multi-ecosystem group", () => {
   );
 });
 
+test("ROADMAP maintenance backlog keeps at least three live seeds", () => {
+  const backlogSection = roadmap.split("## Maintenance seed backlog")[1] ?? "";
+  const liveSeeds = [...backlogSection.matchAll(/^### (SEED-\d+) — .+$/gm)];
+
+  assert.ok(
+    liveSeeds.length >= 3,
+    "ROADMAP should keep at least three live maintenance seeds",
+  );
+
+  for (const [index, match] of liveSeeds.entries()) {
+    const seedName = match[1];
+    const nextHeading = liveSeeds[index + 1]?.index ?? backlogSection.length;
+    const seedSection = backlogSection.slice(match.index, nextHeading);
+    const estimateMatch = seedSection.match(/\*\*Estimate:\*\*\s*~?(\d+)\s*min/i);
+
+    assert.ok(estimateMatch, `${seedName} should include an Estimate line`);
+    const estimateMinutes = Number(estimateMatch[1]);
+    assert.ok(
+      estimateMinutes >= 30 && estimateMinutes <= 90,
+      `${seedName} estimate should be between 30 and 90 minutes`,
+    );
+  }
+
+  assert.doesNotMatch(
+    backlogSection,
+    /### SEED-3/,
+    "Completed seeds should not be counted as live backlog seeds",
+  );
+});
+
 test("ROADMAP backlog excludes shipped SEED-3 report filter", () => {
   const backlogSection = roadmap.split("## Maintenance seed backlog")[1] ?? "";
 
