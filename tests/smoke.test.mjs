@@ -172,8 +172,16 @@ test("ROADMAP documents the active Dependabot multi-ecosystem group", () => {
 });
 
 test("ROADMAP maintenance backlog keeps at least three live seeds", () => {
+  const completedSection =
+    roadmap.split("## Completed maintenance seeds")[1]?.split("\n## ")[0] ?? "";
   const backlogSection = roadmap.split("## Maintenance seed backlog")[1] ?? "";
+  const completedSeedIds = new Set(
+    [...completedSection.matchAll(/^### (SEED-\d+) — .+$/gm)].map(
+      ([, seedId]) => seedId,
+    ),
+  );
   const liveSeeds = [...backlogSection.matchAll(/^### (SEED-\d+) — .+$/gm)];
+  const liveSeedIds = liveSeeds.map(([, seedId]) => seedId);
 
   assert.ok(
     liveSeeds.length >= 3,
@@ -194,9 +202,12 @@ test("ROADMAP maintenance backlog keeps at least three live seeds", () => {
     );
   }
 
-  assert.doesNotMatch(
-    backlogSection,
-    /### SEED-3/,
+  const shippedSeedsInBacklog = liveSeedIds.filter((seedId) =>
+    completedSeedIds.has(seedId),
+  );
+  assert.deepEqual(
+    shippedSeedsInBacklog,
+    [],
     "Completed seeds should not be counted as live backlog seeds",
   );
 });
