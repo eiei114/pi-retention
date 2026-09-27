@@ -355,9 +355,13 @@ export function compareStartupCandidates(a: RetentionRecord, b: RetentionRecord)
 }
 
 export function selectOldestExpiredRecord(records: RetentionRecord[], now = nowIso()) {
-  return records
-    .filter((record) => isStartupCandidate(record, now))
-    .sort(compareStartupCandidates)[0];
+  let candidate: RetentionRecord | undefined;
+  for (const record of records) {
+    if (isStartupCandidate(record, now) && (!candidate || compareStartupCandidates(record, candidate) < 0)) {
+      candidate = record;
+    }
+  }
+  return candidate;
 }
 
 export function recordReportStatus(record: RetentionRecord, now = nowIso()) {
