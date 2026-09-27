@@ -12,19 +12,15 @@ This project follows semantic versioning.
 ## [0.1.13] - 2026-09-28
 
 - chore: periodic patch bump after 7+ days without npm publish
-
 ## [0.1.12] - 2026-09-28
 
 - chore: periodic patch bump after 7+ days without npm publish
-
 ## [0.1.11] - 2026-09-28
 
 - chore: periodic patch bump after 7+ days without npm publish
-
 ## [0.1.10] - 2026-09-28
 
 - chore: periodic patch bump after 7+ days without npm publish
-
 ## [0.1.9] - 2026-08-22
 
 ### Changed
