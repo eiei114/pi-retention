@@ -1,33 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## Unreleased
 
 ## [0.1.14] - 2026-09-27
 
 - chore: periodic patch bump after 7+ days without npm publish
-
-## 0.1.13 - 2026-09-27
-
-- chore: periodic patch bump after 7+ days without npm publish
-
-## 0.1.12 - 2026-09-27
-
-- chore: periodic patch bump after 7+ days without npm publish
-
-## 0.1.11 - 2026-09-27
-
-- chore: periodic patch bump after 7+ days without npm publish
-
-## 0.1.10 - 2026-09-27
-
-- chore: periodic patch bump after 7+ days without npm publish
-
 ## [0.1.9] - 2026-08-22
 
 ### Changed
 
 - Merge the 2026-08-22 managed OSS dependency and maintenance PR batch.
-
 ## [0.1.8] - 2026-08-11
 
 ### Fixed
@@ -44,19 +26,16 @@
 All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
-
 ## [0.1.5] - 2026-07-04
 
 ### Changed
 
 - Add Buy Me a Coffee sponsor button to README and native GitHub funding link via `.github/FUNDING.yml`.
-
 ## [0.1.4] - 2026-06-26
 
 ### Changed
 
 - README aligned with the current Pi extension template: expanded install paths, package contents table, and explicit `npm run pack:check` / `npm pack --dry-run` release-readiness guidance.
-
 ## [0.1.3] - 2026-06-17
 
 ### Added
@@ -70,7 +49,6 @@ This project follows semantic versioning.
 - `retention:report` now labels the single startup candidate and documents status symbols.
 - Startup confirm copy states the one-per-launch rule; deny leaves state unchanged.
 - README startup section matches implemented ordering and exclusion rules.
-
 ## [0.1.2] - 2026-06-14
 
 ### Added
@@ -85,7 +63,6 @@ This project follows semantic versioning.
 - Replaced the template scaffold with the Pi Retention package identity.
 - Removed template placeholder skills, prompts, themes, and docs from the published package.
 - Updated README with commands, data files, and startup behavior.
-
 ## [0.1.1] - 2026-06-01
 
 ### Changed
@@ -93,7 +70,6 @@ This project follows semantic versioning.
 - Publish workflow now supports npm publishing on merged package version bumps in addition to tags, releases, and manual dispatch.
 - Publish workflow now installs a current npm CLI so npm Trusted Publishing OIDC is supported.
 - CI and publish workflow commands no longer include literal trailing `\\n` text.
-
 ## [0.1.0] - 2026-05-29
 
 ### Added
