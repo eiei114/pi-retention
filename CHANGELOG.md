@@ -4,8 +4,6 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
-## Unreleased
-
 ## [0.1.14] - 2026-09-27
 
 - chore: periodic patch bump after 7+ days without npm publish
@@ -93,3 +91,5 @@ This project follows semantic versioning.
 - Initial Pi package template.
 - Example extension, Agent Skill, prompt, and theme.
 - CI and npm Trusted Publishing workflow.
+## Unreleased
+
