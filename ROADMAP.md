@@ -43,7 +43,7 @@ reporting, and no unattended purge are planned for this MVP line.
 
 ## Short-term maintenance goals (next 2–3 releases)
 
-- **0.1.10** — Lifecycle coverage. Add integration tests for the quarantine →
+- **0.1.15** — Lifecycle coverage. Add integration tests for the quarantine →
   restore → purge path (see [SEED-4](#seed-4)).
 - **0.2.0** — Optional batch review flow (explicitly **separate** from startup),
   if the single-candidate startup contract stays intact. Gated on real usage
@@ -166,5 +166,5 @@ one per maintenance window.
 3. When a seed ships, move it out of this backlog and update the relevant
    release goal above. Keep at least three live candidates here so the weekly
    seed planner can pick without re-scoping; SEED-4 remains the primary target
-   for `0.1.10`, with SEED-6 and SEED-7 covering extension parsing coverage
+   for `0.1.15`, with SEED-6 and SEED-7 covering extension parsing coverage
    and planner guardrails.

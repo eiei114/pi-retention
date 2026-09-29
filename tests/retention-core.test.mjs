@@ -165,3 +165,33 @@ test("formatReport filters due rows and appends a summary footer", () => {
   assert.doesNotMatch(text, /Quarantined Item/);
   assert.match(text, /due today: 1$/);
 });
+
+test("formatReport keeps an empty due filter stable without deleting records", () => {
+  const manifest = {
+    version: 1,
+    updatedAt: REPORT_NOW,
+    defaults: { skillTtlDays: 30, extensionTtlDays: 90 },
+    records: [
+      reportRecord({ id: "future", displayName: "Future Item", dueAt: "2026-03-01T00:00:00.000Z" }),
+      reportRecord({ id: "pinned", displayName: "Pinned Item", pinned: true }),
+      reportRecord({ id: "quarantined", displayName: "Quarantined Item", state: "quarantined" }),
+    ],
+  };
+  const recordsBefore = structuredClone(manifest.records);
+
+  const text = formatReport(manifest, REPORT_NOW, { dueOnly: true });
+
+  assert.equal(
+    text,
+    [
+      "Retention report: 0 due of 3 tracked",
+      "active=2 quarantined=1 due=0 protected=1",
+      "status: A=active !=due P=pinned Q=quarantined",
+      "",
+      "(no due roots tracked)",
+      "",
+      "due today: 0",
+    ].join("\n"),
+  );
+  assert.deepEqual(manifest.records, recordsBefore);
+});
