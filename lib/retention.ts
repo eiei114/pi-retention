@@ -351,7 +351,13 @@ export function isStartupCandidate(record: RetentionRecord, now = nowIso()) {
 export function compareStartupCandidates(a: RetentionRecord, b: RetentionRecord) {
   const dueDelta = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
   if (dueDelta !== 0) return dueDelta;
-  return new Date(a.lastUsedAt).getTime() - new Date(b.lastUsedAt).getTime();
+  const aLastUsedAt = new Date(a.lastUsedAt).getTime();
+  const bLastUsedAt = new Date(b.lastUsedAt).getTime();
+  const aHasValidLastUsedAt = Number.isFinite(aLastUsedAt);
+  const bHasValidLastUsedAt = Number.isFinite(bLastUsedAt);
+  if (aHasValidLastUsedAt && bHasValidLastUsedAt) return aLastUsedAt - bLastUsedAt;
+  if (aHasValidLastUsedAt !== bHasValidLastUsedAt) return aHasValidLastUsedAt ? -1 : 1;
+  return a.id.localeCompare(b.id);
 }
 
 export function selectOldestExpiredRecord(records: RetentionRecord[], now = nowIso()) {

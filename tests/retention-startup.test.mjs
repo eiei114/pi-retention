@@ -73,6 +73,29 @@ test("compareStartupCandidates matches selectOldestExpiredRecord ordering", () =
   assert.equal(selectOldestExpiredRecord(records, NOW)?.id, "a");
 });
 
+test("invalid lastUsedAt sorts after valid timestamps for equal due dates", () => {
+  const validOldest = record({
+    id: "valid-oldest",
+    dueAt: "2026-01-10T00:00:00.000Z",
+    lastUsedAt: "2025-12-01T00:00:00.000Z",
+  });
+  const validNewer = record({
+    id: "valid-newer",
+    dueAt: "2026-01-10T00:00:00.000Z",
+    lastUsedAt: "2026-01-01T00:00:00.000Z",
+  });
+  const invalid = record({
+    id: "invalid",
+    dueAt: "2026-01-10T00:00:00.000Z",
+    lastUsedAt: "not-a-date",
+  });
+
+  assert.ok(compareStartupCandidates(validOldest, invalid) < 0);
+  assert.ok(compareStartupCandidates(invalid, validOldest) > 0);
+  assert.equal(selectOldestExpiredRecord([invalid, validNewer, validOldest], NOW)?.id, "valid-oldest");
+  assert.equal(selectOldestExpiredRecord([validOldest, invalid, validNewer], NOW)?.id, "valid-oldest");
+});
+
 test("selectOldestExpiredRecord returns at most one candidate", () => {
   const records = [
     record({ id: "a", dueAt: "2026-01-10T00:00:00.000Z" }),
