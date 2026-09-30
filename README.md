@@ -65,7 +65,7 @@ pi install npm:pi-retention
 Pin a specific version when you want reproducible installs:
 
 ```bash
-pi install npm:pi-retention@0.1.14
+pi install npm:pi-retention@0.1.15
 ```
 
 Install into the current project instead of your user Pi settings:

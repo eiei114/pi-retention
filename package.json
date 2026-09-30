@@ -1,6 +1,6 @@
 {
   "name": "pi-retention",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Local retention tracker for Pi skills and extensions.",
   "type": "module",
   "license": "MIT",
@@ -48,9 +48,9 @@
     "typebox": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "latest",
-    "@earendil-works/pi-coding-agent": "latest",
-    "@earendil-works/pi-tui": "latest",
+    "@earendil-works/pi-ai": "^0.99.1",
+    "@earendil-works/pi-coding-agent": "^0.99.1",
+    "@earendil-works/pi-tui": "^0.99.1",
     "@types/node": "^26.5.1",
     "typebox": "latest",
     "typescript": "^7.0.2"
