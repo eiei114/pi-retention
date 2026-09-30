@@ -9,8 +9,8 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.14` |
-| Latest published on npm | `0.1.14` |
+| `package.json` version | `0.1.15` |
+| Latest published on npm | `0.1.15` |
 | Last dated `CHANGELOG.md` entry | `[0.1.9]` — 2026-08-22 (managed OSS dependency batch) |
 | In-tree, not yet dated in changelog | DOT-2029: linear-time retention candidate selection; no release created |
 | Next planned version | `0.1.15` — lifecycle integration tests (see [SEED-4](#seed-4)) |
