@@ -2,18 +2,32 @@
 
 Pi Retention ships one extension entrypoint and a shared library. These examples match the commands registered in `extensions/index.ts`.
 
-## Local development
+## Quick start
 
-Load the package from a clone:
+Install the published package and start Pi in the project you want to track:
 
 ```bash
-pi -e .
+pi install npm:pi-retention
+pi
 ```
 
-Initialize retention data for the current project:
+Inside Pi, initialize retention data and view the tracked roots:
 
 ```txt
 /retention:init
+/retention:report
+```
+
+`retention:init` creates `.pi/.pi-retention-project.yaml` for the current project.
+The report lists active, protected, quarantined, and due roots. To show only due
+roots, run `/retention:report --due`.
+
+## Local development
+
+Load the package from a clone instead of the published package:
+
+```bash
+pi -e .
 ```
 
 ## Report tracked roots
