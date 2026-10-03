@@ -105,7 +105,7 @@ test("examples doc documents retention commands instead of template placeholders
     assert.doesNotMatch(examplesDoc, new RegExp(marker));
   }
 
-  assert.match(examplesDoc, /pi install npm:pi-retention/);
+  assert.match(examplesDoc, /pi install -l npm:pi-retention/);
   assert.match(examplesDoc, /retention:init/);
   assert.match(examplesDoc, /retention:report --due/);
   assert.match(examplesDoc, /retention:confirm/);
