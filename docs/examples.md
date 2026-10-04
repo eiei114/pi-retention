@@ -7,7 +7,7 @@ Pi Retention ships one extension entrypoint and a shared library. These examples
 Install the published package and start Pi in the project you want to track:
 
 ```bash
-pi install npm:pi-retention
+pi install npm:pi-retention -l
 pi
 ```
 
