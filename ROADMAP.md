@@ -41,6 +41,18 @@ reporting, and no unattended purge are planned for this MVP line.
 - Automatic purge without explicit user confirmation
 - Batch quarantine of multiple items in one startup prompt
 
+## Roadmap review — 2026-W41
+
+The roadmap source is present and has been refreshed against the current `main` branch
+(release `0.1.8`). The next bounded maintenance candidates are:
+
+1. **SEED-3** — Add a `--due` filter and summary footer to `retention:report`.
+2. **SEED-4** — Lifecycle integration test for quarantine → restore → purge.
+3. **Dependency hygiene** — merge or close the open Dependabot npm-dev-minor-patch batch when safe.
+
+These candidates are already recorded in the maintenance backlog below; no
+implementation or release action is part of this roadmap refresh.
+
 ## Short-term maintenance goals (next 2–3 releases)
 
 - **0.1.15** — Lifecycle coverage. Add integration tests for the quarantine →
