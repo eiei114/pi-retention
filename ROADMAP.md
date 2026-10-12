@@ -9,11 +9,11 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.15` |
+| `package.json` version | `0.1.16` |
 | Latest published on npm | `0.1.15` |
-| Last dated `CHANGELOG.md` entry | `[0.1.9]` — 2026-08-22 (managed OSS dependency batch) |
+| Last dated `CHANGELOG.md` entry | `[0.1.16]` — 2026-10-12 (Pi SDK 1.1.0 compatibility) |
 | In-tree, not yet dated in changelog | DOT-2029: linear-time retention candidate selection; no release created |
-| Next planned version | `0.1.15` — lifecycle integration tests (see [SEED-4](#seed-4)) |
+| Next planned version | `0.1.17` — lifecycle integration tests (see [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
 
 The package is a **local-only** tracker. No cloud sync, no telemetry, no remote
@@ -48,14 +48,14 @@ The roadmap source is present and has been refreshed against the current `main` 
 
 1. **SEED-3** — Add a `--due` filter and summary footer to `retention:report`.
 2. **SEED-4** — Lifecycle integration test for quarantine → restore → purge.
-3. **Dependency hygiene** — merge or close the open Dependabot npm-dev-minor-patch batch when safe.
+3. **Dependency hygiene** — merge or close the open Dependabot all-dependencies batch when safe.
 
 These candidates are already recorded in the maintenance backlog below; no
 implementation or release action is part of this roadmap refresh.
 
 ## Short-term maintenance goals (next 2–3 releases)
 
-- **0.1.15** — Lifecycle coverage. Add integration tests for the quarantine →
+- **0.1.17** — Lifecycle coverage. Add integration tests for the quarantine →
   restore → purge path (see [SEED-4](#seed-4)).
 - **0.2.0** — Optional batch review flow (explicitly **separate** from startup),
   if the single-candidate startup contract stays intact. Gated on real usage
@@ -178,5 +178,5 @@ one per maintenance window.
 3. When a seed ships, move it out of this backlog and update the relevant
    release goal above. Keep at least three live candidates here so the weekly
    seed planner can pick without re-scoping; SEED-4 remains the primary target
-   for `0.1.15`, with SEED-6 and SEED-7 covering extension parsing coverage
+   for `0.1.17`, with SEED-6 and SEED-7 covering extension parsing coverage
    and planner guardrails.

@@ -48,7 +48,7 @@ test("package uses public publish config", () => {
   assert.equal(packageJson.publishConfig.access, "public");
 });
 
-test("ROADMAP release status matches package version", () => {
+test("ROADMAP release status matches package version and published npm is not ahead", () => {
   const packageVersionMatch = roadmap.match(
     /\| `package\.json` version \| `(\d+\.\d+\.\d+)` \|/,
   );
@@ -69,10 +69,16 @@ test("ROADMAP release status matches package version", () => {
     packageJson.version,
     "ROADMAP package.json version should match package.json",
   );
-  assert.equal(
-    npmVersionMatch[1],
-    packageJson.version,
-    "ROADMAP npm version should match in-tree package.json version",
+  const parseVersion = (version) => {
+    assert.match(version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
+    return version.split(".").map(Number);
+  };
+  const packageVersion = parseVersion(packageJson.version);
+  const latestPublishedVersion = parseVersion(npmVersionMatch[1]);
+  const difference = packageVersion.findIndex((part, index) => part !== latestPublishedVersion[index]);
+  assert.ok(
+    difference === -1 || packageVersion[difference] > latestPublishedVersion[difference],
+    "ROADMAP npm version should not be newer than the in-tree package version",
   );
 });
 
@@ -118,14 +124,22 @@ test("docs directory contains only git-tracked files", async () => {
       .split("\n")
       .filter(Boolean),
   );
-  const onDisk = await readdir(new URL("../docs", import.meta.url));
+  const docsRoot = new URL("../docs/", import.meta.url);
+  const onDisk = [];
+  async function collectFiles(directory, prefix = "") {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        await collectFiles(new URL(`${entry.name}/`, directory), relativePath);
+      } else {
+        onDisk.push(`docs/${relativePath}`);
+      }
+    }
+  }
+  await collectFiles(docsRoot);
 
-  for (const name of onDisk) {
-    const relativePath = `docs/${name}`;
-    assert.ok(
-      tracked.has(relativePath),
-      `${relativePath} exists on disk but is not tracked by git`,
-    );
+  for (const relativePath of onDisk) {
+    assert.ok(tracked.has(relativePath), `${relativePath} exists on disk but is not tracked by git`);
   }
 });
 
@@ -165,11 +179,7 @@ test("ROADMAP documents the active Dependabot multi-ecosystem group", () => {
     roadmap.includes(`\`${groupName}\``),
     `ROADMAP should reference the Dependabot group \`${groupName}\``,
   );
-  assert.doesNotMatch(
-    roadmap,
-    /npm-dev-minor-patch/,
-    "ROADMAP should not reference the removed npm-dev-minor-patch group",
-  );
+  assert.doesNotMatch(roadmap, /npm-dev-minor-patch/, "ROADMAP should not reference the removed Dependabot group");
 });
 
 test("ROADMAP maintenance backlog keeps at least three live seeds", () => {
