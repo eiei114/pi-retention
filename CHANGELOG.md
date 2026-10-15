@@ -6,6 +6,12 @@ This project follows semantic versioning.
 
 ## Unreleased
 
+## [0.1.17] - 2026-10-16
+
+### Changed
+
+- Share oldest-expired-candidate confirmation between startup and the explicit confirm command.
+
 ## [0.1.16] - 2026-10-12
 
 ### Changed
