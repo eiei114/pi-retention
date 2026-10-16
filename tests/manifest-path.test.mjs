@@ -35,6 +35,18 @@ test("loadManifest prefers .pi/.pi-retention-project.yaml over legacy root file"
   assert.equal(manifest.updatedAt, "preferred");
 });
 
+test("loadManifest rejects malformed preferred YAML without rewriting it", async () => {
+  const projectRoot = await mkdtemp(join(tmpdir(), "pi-retention-manifest-"));
+  const preferred = getPreferredManifestPath(projectRoot);
+  const malformedYaml = "version: [unterminated\n";
+
+  await mkdir(join(projectRoot, ".pi"), { recursive: true });
+  await writeFile(preferred, malformedYaml, "utf8");
+
+  await assert.rejects(() => loadManifest(projectRoot), { name: "YAMLParseError" });
+  assert.equal(await readFile(preferred, "utf8"), malformedYaml);
+});
+
 test("loadManifest migrates a legacy root manifest to the preferred path", async () => {
   const projectRoot = await mkdtemp(join(tmpdir(), "pi-retention-manifest-"));
   const legacy = getLegacyManifestPath(projectRoot);
