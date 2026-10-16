@@ -9,11 +9,11 @@ import {
   quarantineRecord,
   restoreRecord,
   saveManifestAndSidecars,
-  selectOldestExpiredRecord,
   syncRecordUsage,
   PACKAGE_NAME,
   type RetentionRecord,
 } from "../lib/retention.ts";
+import { requestOldestExpiredCandidateConfirmation } from "./confirm-candidate.ts";
 import { hasFlag } from "../lib/flags.ts";
 
 function recordLabel(record: Pick<RetentionRecord, "displayName" | "kind" | "state" | "pinned" | "rootPath">) {
@@ -39,16 +39,13 @@ async function confirmStartupCandidate(
   projectRoot: string,
 ) {
   const manifest = await initializeProject(projectRoot);
-  const candidate = selectOldestExpiredRecord(manifest.records);
-  if (!candidate || !ctx.hasUI) return;
-
-  const confirmed = await ctx.ui.confirm(
+  const { candidate, confirmed } = await requestOldestExpiredCandidateConfirmation(
+    manifest.records,
+    ctx,
     "Pi Retention",
-    `Oldest expired candidate (one per startup):\n\n${recordLabel(candidate)}\n\nQuarantine this item?`,
+    (record) => `Oldest expired candidate (one per startup):\n\n${recordLabel(record)}\n\nQuarantine this item?`,
   );
-
-  // Deny leaves state unchanged so the same candidate is offered on the next launch.
-  if (!confirmed) return;
+  if (!candidate || !confirmed) return;
 
   await quarantineRecord(projectRoot, candidate);
   await saveManifestAndSidecars(projectRoot, manifest);
@@ -100,19 +97,17 @@ export default function (pi: ExtensionAPI) {
     handler: async (_args, ctx) => {
       const projectRoot = getProjectRoot(ctx.cwd);
       const manifest = await loadSyncedProjectRetention(projectRoot);
-      const candidate = selectOldestExpiredRecord(manifest.records);
+      const { candidate, confirmed } = await requestOldestExpiredCandidateConfirmation(
+        manifest.records,
+        ctx,
+        "Pi Retention",
+        (record) => `Quarantine the oldest expired candidate?\n\n${recordLabel(record)}`,
+      );
       if (!candidate) {
         await saveManifestAndSidecars(projectRoot, manifest);
         ctx.ui.notify("No expired candidate found.", "info");
         return;
       }
-
-      if (!ctx.hasUI) return;
-
-      const confirmed = await ctx.ui.confirm(
-        "Pi Retention",
-        `Quarantine the oldest expired candidate?\n\n${recordLabel(candidate)}`,
-      );
 
       if (!confirmed) return;
 

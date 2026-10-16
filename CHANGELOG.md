@@ -6,11 +6,17 @@ This project follows semantic versioning.
 
 ## Unreleased
 
-## [0.1.17] - 2026-10-16
+## [0.1.18] - 2026-10-16
 
 ### Changed
 
 - Pin Pi SDK development dependencies to 1.2.0 and verify the extension against the real Pi host.
+
+## [0.1.17] - 2026-10-16
+
+### Changed
+
+- Share oldest-expired-candidate confirmation between startup and the explicit confirm command.
 
 ## [0.1.16] - 2026-10-12
 
