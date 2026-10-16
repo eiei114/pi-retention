@@ -82,19 +82,26 @@ test("ROADMAP release status matches package version and published npm is not ah
   );
 });
 
-test("README pinned install example matches package version", () => {
+test("README pinned install example matches latest published npm version", () => {
   const pinMatch = readme.match(
     /pi install npm:pi-retention@(\d+\.\d+\.\d+)/,
+  );
+  const npmVersionMatch = roadmap.match(
+    /\| Latest published on npm \| `(\d+\.\d+\.\d+)` \|/,
   );
 
   assert.ok(
     pinMatch,
     "README should document a pinned npm install example",
   );
+  assert.ok(
+    npmVersionMatch,
+    "ROADMAP should document latest published npm version in release status table",
+  );
   assert.equal(
     pinMatch[1],
-    packageJson.version,
-    "README pin example should match package.json version",
+    npmVersionMatch[1],
+    "README pin example should match the latest published npm version",
   );
 });
 
