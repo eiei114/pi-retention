@@ -10,6 +10,12 @@ This project follows semantic versioning.
 
 - Share due-date evaluation across startup selection and report output.
 
+## [0.1.20] - 2026-11-02
+
+### Changed
+
+- Align the Pi SDK smoke checks with the exact versions pinned in `package.json`.
+
 ## [0.1.18] - 2026-10-16
 
 ### Changed

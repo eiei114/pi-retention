@@ -1,10 +1,10 @@
 export const VERIFICATION_CONTRACT = "pi-sdk-behavior-v2";
-export const SDK_VERSIONS = {
-  "@earendil-works/pi-agent-core": "1.2.0",
-  "@earendil-works/pi-ai": "1.2.0",
-  "@earendil-works/pi-coding-agent": "1.2.0",
-  "@earendil-works/pi-tui": "1.2.0",
-};
+export const SDK_PACKAGE_NAMES = [
+  "@earendil-works/pi-agent-core",
+  "@earendil-works/pi-ai",
+  "@earendil-works/pi-coding-agent",
+  "@earendil-works/pi-tui",
+];
 export const UNHANDLED_ERROR_PATTERN = /UnhandledPromiseRejection|uncaught exception|shutdown error/i;
 export const EXTENSION_LOAD_ERROR_PATTERN = /Failed to load extension|Error loading extension/i;
 
@@ -111,11 +111,12 @@ export function behaviorAssertions(name, observed) {
 
   if (name === "host_shell") {
     const output = (observed.fullOutput ?? "").trim();
+    const expectedVersion = observed.expectedVersion;
     return [assertion(
       "native_shell_boundary",
-      "The native host shell launches the locally installed Pi CLI and returns its exact pinned SDK version",
-      { exit_code: observed.exit_code, output, expectedVersion: SDK_VERSIONS["@earendil-works/pi-coding-agent"] },
-      observed.exit_code === 0 && output === SDK_VERSIONS["@earendil-works/pi-coding-agent"],
+      "The native host shell launches the locally installed Pi CLI and returns the exact version pinned in the package manifest",
+      { exit_code: observed.exit_code, output, expectedVersion },
+      observed.exit_code === 0 && typeof expectedVersion === "string" && output === expectedVersion,
     )];
   }
 

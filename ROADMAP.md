@@ -9,11 +9,11 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.19` |
+| `package.json` version | `0.1.20` |
 | Latest published on npm | `0.1.15` |
-| Last dated `CHANGELOG.md` entry | `[0.1.18]` — 2026-10-16 (Pi SDK 1.2.0 compatibility) |
+| Last dated `CHANGELOG.md` entry | `[0.1.20]` — 2026-11-02 (Pi SDK smoke checks follow the manifest pin) |
 | In-tree, not yet dated in changelog | DOT-2029: linear-time retention candidate selection; no release created |
-| Next planned version | `0.1.19` — lifecycle integration tests (see [SEED-4](#seed-4)) |
+| Next planned version | `0.1.21` — lifecycle integration tests (see [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
 
 The package is a **local-only** tracker. No cloud sync, no telemetry, no remote

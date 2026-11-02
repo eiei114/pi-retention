@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import {
   behaviorAssertions,
   EXTENSION_LOAD_ERROR_PATTERN,
-  SDK_VERSIONS,
+  SDK_PACKAGE_NAMES,
   UNHANDLED_ERROR_PATTERN,
   VERIFICATION_CONTRACT,
 } from "./pi-sdk-smoke-contract.mjs";
@@ -15,9 +15,10 @@ const reportPath = process.argv.includes("--update-curated-report")
   ? resolve(root, "docs/verification/pi-sdk-smoke.json")
   : resolve(root, ".tmp/pi-sdk-smoke.json");
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-const installedVersions = Object.fromEntries(Object.entries(SDK_VERSIONS).map(([name, expected]) => {
+const installedVersions = Object.fromEntries(SDK_PACKAGE_NAMES.map((name) => {
+  const expected = manifest.devDependencies?.[name];
   const installed = JSON.parse(readFileSync(resolve(root, "node_modules", name, "package.json"), "utf8")).version;
-  if (manifest.devDependencies?.[name] !== expected || installed !== expected) {
+  if (typeof expected !== "string" || installed !== expected) {
     throw new Error(`Smoke requires exact dev/test pin ${name}@${expected}; manifest=${manifest.devDependencies?.[name]}, installed=${installed}`);
   }
   return [name, installed];
@@ -305,7 +306,7 @@ async function initAndReport(session) {
 }
 
 function hostShellCase() {
-  const expectedVersion = SDK_VERSIONS["@earendil-works/pi-coding-agent"];
+  const expectedVersion = manifest.devDependencies["@earendil-works/pi-coding-agent"];
   let result;
   if (process.platform === "win32") {
     const quote = (value) => `'${value.replaceAll("'", "''")}'`;
@@ -326,7 +327,7 @@ function hostShellCase() {
   }
   const fullOutput = `${result.stdout ?? ""}${result.stderr ?? ""}`;
   const exitCode = result.status ?? 1;
-  const assertions = behaviorAssertions("host_shell", { exit_code: exitCode, fullOutput });
+  const assertions = behaviorAssertions("host_shell", { exit_code: exitCode, fullOutput, expectedVersion });
   return {
     name: "host_shell",
     command: "npm run smoke:pi",

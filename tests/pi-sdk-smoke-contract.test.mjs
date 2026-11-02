@@ -66,10 +66,18 @@ test("smoke assertions accept expected real-host observations and fail closed wh
   });
 
   await t.test("native shell checks the exact pinned CLI version", () => {
-    const positive = behaviorAssertions("host_shell", { exit_code: 0, fullOutput: "1.2.0\n" });
-    const missing = behaviorAssertions("host_shell", { exit_code: 0, fullOutput: "" });
+    const positive = behaviorAssertions("host_shell", {
+      exit_code: 0,
+      fullOutput: "1.3.0\n",
+      expectedVersion: "1.3.0",
+    });
+    const mismatched = behaviorAssertions("host_shell", {
+      exit_code: 0,
+      fullOutput: "1.2.0\n",
+      expectedVersion: "1.3.0",
+    });
     assert.equal(positive[0].id, "native_shell_boundary");
     assert.equal(positive[0].passed, true);
-    assert.equal(missing[0].passed, false);
+    assert.equal(mismatched[0].passed, false);
   });
 });
