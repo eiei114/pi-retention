@@ -37,6 +37,25 @@ test("isStartupCandidate excludes pinned, quarantined, and not-yet-due records",
   assert.equal(isStartupCandidate(record({}), NOW), true);
 });
 
+test("due boundary and invalid timestamps stay consistent across startup and report", () => {
+  const dueNow = record({ dueAt: NOW });
+  assert.equal(isStartupCandidate(dueNow, NOW), true);
+  assert.equal(recordReportStatus(dueNow, NOW), "!");
+
+  const dueReport = formatReport({
+    version: 1,
+    updatedAt: NOW,
+    defaults: { skillTtlDays: 30, extensionTtlDays: 90 },
+    records: [dueNow],
+  }, NOW, { dueOnly: true });
+  assert.match(dueReport, /due=1/);
+  assert.match(dueReport, />! A ·/);
+
+  const invalidDueAt = record({ dueAt: "not-a-date" });
+  assert.equal(isStartupCandidate(invalidDueAt, NOW), false);
+  assert.equal(recordReportStatus(invalidDueAt, NOW), "A");
+});
+
 test("selectOldestExpiredRecord orders by due date then age", () => {
   const candidate = selectOldestExpiredRecord([
     record({

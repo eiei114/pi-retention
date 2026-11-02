@@ -344,8 +344,12 @@ export function isStartupCandidate(record: RetentionRecord, now = nowIso()) {
     record.state === "active" &&
     !record.pinned &&
     normalizeRootPath(record.rootPath) !== SELF_ROOT &&
-    new Date(record.dueAt).getTime() <= new Date(now).getTime()
+    isPastDue(record.dueAt, now)
   );
+}
+
+function isPastDue(dueAt: string, now: string) {
+  return new Date(dueAt).getTime() <= new Date(now).getTime();
 }
 
 export function compareStartupCandidates(a: RetentionRecord, b: RetentionRecord) {
@@ -373,7 +377,7 @@ export function selectOldestExpiredRecord(records: RetentionRecord[], now = nowI
 export function recordReportStatus(record: RetentionRecord, now = nowIso()) {
   if (record.state === "quarantined") return "Q";
   if (record.pinned) return "P";
-  if (new Date(record.dueAt).getTime() <= new Date(now).getTime()) return "!";
+  if (isPastDue(record.dueAt, now)) return "!";
   return "A";
 }
 
@@ -382,7 +386,7 @@ export function selectQuarantinedRecord(records: RetentionRecord[]) {
 }
 
 function isDueRecord(record: RetentionRecord, now = nowIso()) {
-  return record.state === "active" && !record.pinned && new Date(record.dueAt).getTime() <= new Date(now).getTime();
+  return record.state === "active" && !record.pinned && isPastDue(record.dueAt, now);
 }
 
 export function recordStats(records: RetentionRecord[], now = nowIso()): ReportStats {

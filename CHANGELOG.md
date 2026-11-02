@@ -6,6 +6,10 @@ This project follows semantic versioning.
 
 ## Unreleased
 
+### Changed
+
+- Share due-date evaluation across startup selection and report output.
+
 ## [0.1.18] - 2026-10-16
 
 ### Changed

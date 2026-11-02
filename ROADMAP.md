@@ -9,7 +9,7 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.18` |
+| `package.json` version | `0.1.19` |
 | Latest published on npm | `0.1.15` |
 | Last dated `CHANGELOG.md` entry | `[0.1.18]` — 2026-10-16 (Pi SDK 1.2.0 compatibility) |
 | In-tree, not yet dated in changelog | DOT-2029: linear-time retention candidate selection; no release created |
