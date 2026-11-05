@@ -1,10 +1,25 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { behaviorAssertions } from "../scripts/pi-sdk-smoke-contract.mjs";
+import { behaviorAssertions, PI_SDK_PACKAGES, SDK_VERSIONS } from "../scripts/pi-sdk-smoke-contract.mjs";
+
+const packageJson = JSON.parse(
+  await readFile(new URL("../package.json", import.meta.url), "utf8"),
+);
 
 const registeredCommand = { name: "retention:init", source: "extension" };
 const handledPrompt = { success: true, data: { disposition: "handled" } };
 const notify = (message) => ({ method: "notify", message });
+
+test("smoke contract follows the manifest Pi SDK pin instead of a version literal", () => {
+  for (const name of PI_SDK_PACKAGES) {
+    assert.equal(
+      SDK_VERSIONS[name],
+      packageJson.devDependencies[name],
+      `${name} smoke expectation should track the package.json dev pin`,
+    );
+  }
+});
 
 test("smoke assertions accept expected real-host observations and fail closed when outputs are missing", async (t) => {
   await t.test("extension registration", () => {
@@ -66,10 +81,13 @@ test("smoke assertions accept expected real-host observations and fail closed wh
   });
 
   await t.test("native shell checks the exact pinned CLI version", () => {
-    const positive = behaviorAssertions("host_shell", { exit_code: 0, fullOutput: "1.2.0\n" });
+    const pinnedCliVersion = `${SDK_VERSIONS["@earendil-works/pi-coding-agent"]}\n`;
+    const positive = behaviorAssertions("host_shell", { exit_code: 0, fullOutput: pinnedCliVersion });
     const missing = behaviorAssertions("host_shell", { exit_code: 0, fullOutput: "" });
+    const stale = behaviorAssertions("host_shell", { exit_code: 0, fullOutput: "0.0.1\n" });
     assert.equal(positive[0].id, "native_shell_boundary");
     assert.equal(positive[0].passed, true);
     assert.equal(missing[0].passed, false);
+    assert.equal(stale[0].passed, false);
   });
 });

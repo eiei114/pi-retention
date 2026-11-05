@@ -8,6 +8,8 @@ This project follows semantic versioning.
 
 ### Changed
 
+- Move the Pi SDK development pins to `1.4.0` and verify the extension against the real Pi host.
+- Read the Pi SDK smoke expectation from the `package.json` pin instead of a version literal, so a dependency bump cannot leave the host-version assertion behind.
 - Share due-date evaluation across startup selection and report output.
 
 ## [0.1.18] - 2026-10-16

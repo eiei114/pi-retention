@@ -150,43 +150,49 @@ test("docs directory contains only git-tracked files", async () => {
   }
 });
 
-test("ROADMAP documents the active Dependabot multi-ecosystem group", () => {
-  const groupMatch = dependabotConfig.match(
-    /multi-ecosystem-groups:\s*\n\s+([a-z0-9-]+):/,
+// The 2026-W41 roadmap review referenced the Dependabot `all-dependencies`
+// group. The 2026-11-05 config replaced that single multi-ecosystem group with
+// per-ecosystem groups (`pi-sdk` + `npm-dependencies`, `github-actions-dependencies`)
+// because the multi-ecosystem group never produced grouped PRs. The test keeps
+// the roadmap and the live config from drifting apart again.
+test("ROADMAP documents the active Dependabot dependency groups", () => {
+  const declaredGroups = [...dependabotConfig.matchAll(/^ {4}([a-z0-9-]+):$/gm)].map(
+    ([, name]) => name,
   );
 
-  assert.ok(
-    groupMatch,
-    "dependabot.yml should declare a multi-ecosystem group",
+  assert.ok(declaredGroups.length > 0, "dependabot.yml should declare dependency groups");
+  assert.doesNotMatch(
+    dependabotConfig,
+    /multi-ecosystem-groups:/,
+    "dependabot.yml should use per-ecosystem groups, not an inert multi-ecosystem group",
+  );
+  assert.match(
+    dependabotConfig,
+    /package-ecosystem:\s*npm[\s\S]*?groups:[\s\S]*?pi-sdk:[\s\S]*?@earendil-works\/\*/,
+    "npm updates should group the Pi SDK packages together",
+  );
+  assert.match(
+    dependabotConfig,
+    /package-ecosystem:\s*github-actions[\s\S]*?groups:\s*\n\s+github-actions-dependencies:/,
+    "github-actions updates should stay in one group",
   );
 
-  const groupName = groupMatch[1];
-  assert.match(
-    dependabotConfig,
-    new RegExp(
-      `multi-ecosystem-groups:\\s*\\n\\s+${groupName}:[\\s\\S]*?schedule:\\s*\\n\\s+interval:\\s*weekly`,
-    ),
-    `Dependabot group ${groupName} should keep a weekly schedule`,
+  for (const groupName of declaredGroups) {
+    assert.ok(
+      roadmap.includes(`\`${groupName}\``),
+      `ROADMAP should reference the active Dependabot group \`${groupName}\``,
+    );
+  }
+  assert.doesNotMatch(
+    roadmap,
+    /all-dependencies/,
+    "ROADMAP should not reference the retired Dependabot group",
   );
-  assert.match(
-    dependabotConfig,
-    new RegExp(
-      `package-ecosystem:\\s*npm[\\s\\S]*?multi-ecosystem-group:\\s*${groupName}`,
-    ),
-    `npm updates should use multi-ecosystem group ${groupName}`,
+  assert.doesNotMatch(
+    roadmap,
+    /npm-dev-minor-patch/,
+    "ROADMAP should not reference the retired Dependabot group",
   );
-  assert.match(
-    dependabotConfig,
-    new RegExp(
-      `package-ecosystem:\\s*github-actions[\\s\\S]*?multi-ecosystem-group:\\s*${groupName}`,
-    ),
-    `github-actions updates should use multi-ecosystem group ${groupName}`,
-  );
-  assert.ok(
-    roadmap.includes(`\`${groupName}\``),
-    `ROADMAP should reference the Dependabot group \`${groupName}\``,
-  );
-  assert.doesNotMatch(roadmap, /npm-dev-minor-patch/, "ROADMAP should not reference the removed Dependabot group");
 });
 
 test("ROADMAP maintenance backlog keeps at least three live seeds", () => {
