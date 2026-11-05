@@ -9,11 +9,11 @@
 
 | Field | Value |
 |---|---|
-| `package.json` version | `0.1.19` |
+| `package.json` version | `0.1.20` |
 | Latest published on npm | `0.1.15` |
 | Last dated `CHANGELOG.md` entry | `[0.1.18]` — 2026-10-16 (Pi SDK 1.2.0 compatibility) |
 | In-tree, not yet dated in changelog | DOT-2029: linear-time retention candidate selection; no release created |
-| Next planned version | `0.1.19` — lifecycle integration tests (see [SEED-4](#seed-4)) |
+| Next planned version | `0.1.20` — lifecycle integration tests (see [SEED-4](#seed-4)) |
 | Release flow | npm Trusted Publishing via `auto-release.yml` → `publish.yml` (see [`docs/release.md`](docs/release.md)) |
 
 The package is a **local-only** tracker. No cloud sync, no telemetry, no remote
@@ -48,7 +48,7 @@ The roadmap source is present and has been refreshed against the current `main` 
 
 1. **SEED-3** — Add a `--due` filter and summary footer to `retention:report`.
 2. **SEED-4** — Lifecycle integration test for quarantine → restore → purge.
-3. **Dependency hygiene** — merge or close the open Dependabot all-dependencies batch when safe.
+3. **Dependency hygiene** — merge or close the open Dependabot group PRs when safe.
 
 These candidates are already recorded in the maintenance backlog below; no
 implementation or release action is part of this roadmap refresh.
@@ -74,9 +74,11 @@ Each release continues to follow the existing guardrails: `npm run ci`
 - **Planner guardrails** — the backlog must keep at least three live seeds so
   the weekly maintenance seed planner can promote work without re-scoping
   ([SEED-7](#seed-7)).
-- **Dependency hygiene** — Dependabot keeps the weekly `all-dependencies` group
-  current (npm and GitHub Actions); keep merging the open group PRs promptly to
-  reduce conflict surface.
+- **Dependency hygiene** — Dependabot keeps one weekly grouped PR per
+  ecosystem: the `pi-sdk` group moves the `@earendil-works/*` packages
+  together, `npm-dependencies` carries the remaining npm updates, and
+  `github-actions-dependencies` covers workflow actions. Keep merging the open
+  group PRs promptly to reduce conflict surface.
 
 ## Completed maintenance seeds
 
