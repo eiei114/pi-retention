@@ -1,10 +1,25 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 export const VERIFICATION_CONTRACT = "pi-sdk-behavior-v2";
-export const SDK_VERSIONS = {
-  "@earendil-works/pi-agent-core": "1.2.0",
-  "@earendil-works/pi-ai": "1.2.0",
-  "@earendil-works/pi-coding-agent": "1.2.0",
-  "@earendil-works/pi-tui": "1.2.0",
-};
+export const PI_SDK_PACKAGES = [
+  "@earendil-works/pi-agent-core",
+  "@earendil-works/pi-ai",
+  "@earendil-works/pi-coding-agent",
+  "@earendil-works/pi-tui",
+];
+
+const manifest = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "package.json"), "utf8"));
+
+// The smoke contract follows the manifest pin instead of repeating a version
+// literal, so a dependency bump cannot leave the host-version assertion behind.
+export const SDK_VERSIONS = Object.fromEntries(PI_SDK_PACKAGES.map((name) => {
+  const pin = manifest.devDependencies?.[name];
+  if (typeof pin !== "string" || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(pin)) {
+    throw new Error(`Pi SDK dev pin for ${name} must be an exact version in package.json; found ${JSON.stringify(pin)}`);
+  }
+  return [name, pin];
+}));
 export const UNHANDLED_ERROR_PATTERN = /UnhandledPromiseRejection|uncaught exception|shutdown error/i;
 export const EXTENSION_LOAD_ERROR_PATTERN = /Failed to load extension|Error loading extension/i;
 
