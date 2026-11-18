@@ -186,8 +186,9 @@ one per maintenance window.
 
 ### SEED-10 — Test extension `tool_call` usage synchronization
 
-- **Problem:** `syncRecordUsage` is tested directly, but no test exercises the
-  extension's `tool_call` handler and its persistence of matching tool usage.
+- **Problem:** `loadSyncedProjectRetention` has indirect usage-sync coverage,
+  but no test directly exercises `syncRecordUsage` or the extension's
+  `tool_call` handler and its persistence of matching tool usage.
 - **Scope:** Tests only. No production change unless a test reveals a bug.
 - **Estimate:** ~60 min.
 - **Acceptance criteria:**
