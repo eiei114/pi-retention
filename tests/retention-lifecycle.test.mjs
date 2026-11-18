@@ -37,6 +37,10 @@ async function readSettings(projectRoot) {
   return JSON.parse(await readFile(join(projectRoot, ".pi", "settings.json"), "utf8"));
 }
 
+async function assertPathMissing(path) {
+  await assert.rejects(access(path), (error) => error.code === "ENOENT");
+}
+
 async function readSidecar(path) {
   return parseYaml(await readFile(getSidecarPath(path), "utf8"));
 }
@@ -71,7 +75,7 @@ test("quarantine, restore, and purge keep the package, sidecar, and log in sync"
   assert.ok(firstTrashPath);
   assert.equal(dirname(firstTrashPath), getTrashDir(projectRoot));
   assert.match(basename(firstTrashPath), /^demo-extension-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/);
-  await assert.rejects(access(packageRoot));
+  await assertPathMissing(packageRoot);
   assert.equal(await readFile(join(firstTrashPath, "artifact.txt"), "utf8"), "artifact survives restore");
   assert.deepEqual((await readSettings(projectRoot)).packages, ["./packages/other"]);
 
@@ -89,6 +93,7 @@ test("quarantine, restore, and purge keep the package, sidecar, and log in sync"
   assert.ok(Date.parse(record.lastUsedAt) <= afterRestore);
   assert.equal(record.dueAt, addDays(record.lastUsedAt, record.ttlDays));
   assert.equal(await readFile(markerPath, "utf8"), "artifact survives restore");
+  await assertPathMissing(firstTrashPath);
   assert.deepEqual((await readSettings(projectRoot)).packages, ["./packages/other", packageEntry]);
 
   const restoredSidecar = await readSidecar(packageRoot);
@@ -101,13 +106,13 @@ test("quarantine, restore, and purge keep the package, sidecar, and log in sync"
   await quarantineRecord(projectRoot, record);
   const purgePath = record.quarantinePath;
   assert.ok(purgePath);
-  await assert.rejects(access(packageRoot));
+  await assertPathMissing(packageRoot);
   const settingsBeforePurge = await readFile(settingsPath, "utf8");
   const manifestBeforePurge = await readFile(manifestPath, "utf8");
 
   await purgeRecord(projectRoot, record);
 
-  await assert.rejects(access(purgePath));
+  await assertPathMissing(purgePath);
   assert.equal(await readFile(settingsPath, "utf8"), settingsBeforePurge);
   assert.equal(await readFile(manifestPath, "utf8"), manifestBeforePurge);
 
