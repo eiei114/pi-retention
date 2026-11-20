@@ -43,20 +43,17 @@ reporting, and no unattended purge are planned for this MVP line.
 
 ## Roadmap review — 2026-W41
 
-The roadmap source is present and has been refreshed against the current `main` branch
-(release `0.1.8`). The next bounded maintenance candidates are:
+This historical review listed work that has since shipped. SEED-3 and SEED-4
+are completed on the current `main` branch (package version `0.1.21`); do not
+promote them from this snapshot. For current work, use the live candidates in
+the [maintenance seed backlog](#maintenance-seed-backlog) below.
 
-1. **SEED-3** — Add a `--due` filter and summary footer to `retention:report`.
-2. **SEED-4** — Lifecycle integration test for quarantine → restore → purge.
-3. **Dependency hygiene** — merge or close the open Dependabot group PRs when safe.
-
-These candidates are already recorded in the maintenance backlog below; no
-implementation or release action is part of this roadmap refresh.
+No implementation or release action is part of this historical review.
 
 ## Short-term maintenance goals (next 2–3 releases)
 
-- **0.1.19** — Lifecycle coverage. Add integration tests for the quarantine →
-  restore → purge path (see [SEED-4](#seed-4)).
+- **Lifecycle coverage** — completed on `main`; see [SEED-4](#seed-4). This
+  roadmap note does not imply a package release.
 - **0.2.0** — Optional batch review flow (explicitly **separate** from startup),
   if the single-candidate startup contract stays intact. Gated on real usage
   feedback before committing.
@@ -67,13 +64,13 @@ Each release continues to follow the existing guardrails: `npm run ci`
 
 ## Areas needing improvement
 
-- **Test coverage** — core startup ordering and manifest-path resolution are
-  well covered; the extension command layer and the quarantine/restore/purge
-  filesystem lifecycle are not directly exercised ([SEED-4](#seed-4),
-  [SEED-6](#seed-6)).
-- **Planner guardrails** — the backlog must keep at least three live seeds so
-  the weekly maintenance seed planner can promote work without re-scoping
-  ([SEED-7](#seed-7)).
+- **Test coverage** — startup ordering, manifest paths, and the quarantine /
+  restore / purge lifecycle have focused coverage. Direct tests for pin/unpin
+  command persistence and the `tool_call` usage-sync handler remain useful
+  ([SEED-8](#seed-8), [SEED-10](#seed-10)).
+- **Planner guardrails** — `tests/smoke.test.mjs` enforces at least three
+  estimated live seeds and excludes completed seeds; keep each candidate
+  genuinely open in the backlog below.
 - **Dependency hygiene** — Dependabot keeps one weekly grouped PR per
   ecosystem: the `pi-sdk` group moves the `@earendil-works/*` packages
   together, `npm-dependencies` carries the remaining npm updates, and
@@ -96,6 +93,19 @@ Each release continues to follow the existing guardrails: `npm run ci`
         default (unchanged) path.
   - [x] `npm run ci` passes.
 
+<a id="seed-4"></a>
+
+### SEED-4 — Lifecycle integration test for quarantine → restore → purge
+
+- **Status:** Shipped on `main` in DOT-3854 (`tests/retention-lifecycle.test.mjs`).
+- **Acceptance criteria:**
+  - [x] A temp-project integration test drives the full lifecycle.
+  - [x] Quarantine moves the directory and removes its settings entry; restore
+        returns the directory and settings entry and clears `quarantinePath`;
+        purge deletes the trash entry.
+  - [x] Self-protected roots cannot be quarantined.
+  - [x] `npm run ci` passes.
+
 <a id="seed-5"></a>
 
 ### SEED-5 — Migrate legacy project manifests to `.pi/`
@@ -109,6 +119,29 @@ Each release continues to follow the existing guardrails: `npm run ci`
   - [x] Documentation matches `resolveManifestPath` in `lib/retention.ts`.
   - [x] `npm run ci` passes.
 
+<a id="seed-6"></a>
+
+### SEED-6 — Unit-test extension command flag parsing (`hasFlag`)
+
+- **Status:** Shipped on `main` (`lib/flags.ts`, `extensions/index.ts`, and
+  `tests/flags.test.mjs`).
+- **Acceptance criteria:**
+  - [x] `hasFlag` lives in a testable module imported by the extension.
+  - [x] Tests cover positive, negative, and multi-token arguments.
+  - [x] Default `retention:report` output remains unchanged.
+  - [x] `npm run ci` passes.
+
+<a id="seed-7"></a>
+
+### SEED-7 — Smoke test: ROADMAP backlog must list ≥3 live seeds
+
+- **Status:** Shipped in `tests/smoke.test.mjs`.
+- **Acceptance criteria:**
+  - [x] The smoke test counts seed headings under the maintenance backlog and
+        requires at least three.
+  - [x] Each live seed has an estimate, and completed seeds are excluded.
+  - [x] `npm run ci` passes.
+
 ## Maintenance seed backlog
 
 Each seed is intentionally scoped to **30–90 minutes** and lists concrete
@@ -116,59 +149,53 @@ acceptance criteria so the weekly maintenance seed planner can promote it into a
 backlog issue without re-scoping. Seeds are candidates, not commitments — pick
 one per maintenance window.
 
-<a id="seed-4"></a>
+<a id="seed-8"></a>
 
-### SEED-4 — Lifecycle integration test for quarantine → restore → purge
+### SEED-8 — Exercise pin and unpin command state transitions
 
-- **Problem:** `lib/retention.ts` core helpers are unit-tested, but the
-  `quarantineRecord` → `restoreRecord` → `purgeRecord` filesystem lifecycle and
-  the `updateProjectPackages` settings.json sync are not directly exercised.
+- **Problem:** `applyPin` changes the pinned state and unpin recalculates the
+  due date, but tests do not drive the `retention:pin` / `retention:unpin`
+  handlers or verify their saved manifest and sidecars.
 - **Scope:** Tests only. No production change unless a test reveals a bug.
 - **Estimate:** ~60 min.
 - **Acceptance criteria:**
-  - [ ] A new `tests/retention-lifecycle.test.mjs` (or equivalent) drives the
-        full lifecycle against a temp project root.
-  - [ ] It asserts: quarantine moves the dir and removes the entry from
-        `.pi/settings.json`; restore re-adds the entry and clears
-        `quarantinePath`; purge deletes the trash entry.
-  - [ ] It asserts self-protected roots cannot be quarantined.
+  - [ ] A temp-project test invokes both extension commands with a selected
+        active record and verifies pin/unpin state is persisted.
+  - [ ] The test verifies unpin recalculates `dueAt` from `lastUsedAt` and
+        `ttlDays`, and neither command moves package files.
   - [ ] `npm run ci` passes.
 
-<a id="seed-6"></a>
+<a id="seed-9"></a>
 
-### SEED-6 — Unit-test extension command flag parsing (`hasFlag`)
+### SEED-9 — Document the quarantine → restore → purge walkthrough
 
-- **Problem:** `retention:report --due` depends on a private `hasFlag` helper in
-  `extensions/index.ts`. Core report filtering is tested in
-  `tests/retention-core.test.mjs`, but the extension argument parser has no
-  direct coverage, so a refactor could break `--due` wiring without CI catching
-  it.
-- **Scope:** Tests and a small export/move only. No command behavior change
-  unless a test reveals a bug.
+- **Problem:** `docs/examples.md` lists the lifecycle commands and trash
+  directory, but does not explain how the package location and tracked state
+  change between those steps.
+- **Scope:** Documentation only; match the behavior in `lib/retention.ts`.
 - **Estimate:** ~45 min.
 - **Acceptance criteria:**
-  - [ ] `hasFlag` lives in a testable module (e.g. `lib/flags.ts`) and is
-        imported by `extensions/index.ts`.
-  - [ ] A new test file covers positive, negative, and multi-token argument
-        strings (including `--due`).
-  - [ ] Default `retention:report` output remains unchanged.
+  - [ ] The example explains that quarantine moves the package under
+        `.pi-retention-trash/` and records its path.
+  - [ ] It explains that restore returns the package and purge permanently
+        deletes the quarantined copy (including the confirmation prompt).
+  - [ ] Commands, paths, and state changes match the implementation.
   - [ ] `npm run ci` passes.
 
-<a id="seed-7"></a>
+<a id="seed-10"></a>
 
-### SEED-7 — Smoke test: ROADMAP backlog must list ≥3 live seeds
+### SEED-10 — Test extension `tool_call` usage synchronization
 
-- **Problem:** The weekly maintenance seed planner promotes one seed per window
-  from this backlog. When fewer than three candidates exist, promotion stalls
-  and roadmap-driven seeding issues recur (e.g. missing bounded micro tasks).
-- **Scope:** Test only. No production code change.
-- **Estimate:** ~30 min.
+- **Problem:** `loadSyncedProjectRetention` has indirect usage-sync coverage,
+  but no test directly exercises `syncRecordUsage` or the extension's
+  `tool_call` handler and its persistence of matching tool usage.
+- **Scope:** Tests only. No production change unless a test reveals a bug.
+- **Estimate:** ~60 min.
 - **Acceptance criteria:**
-  - [ ] `tests/smoke.test.mjs` counts `### SEED-*` headings under
-        `## Maintenance seed backlog` and asserts the count is ≥ 3.
-  - [ ] Each counted seed includes an `**Estimate:**` line scoped to ~30–90 min.
-  - [ ] Shipped seeds under `## Completed maintenance seeds` are excluded from
-        the count.
+  - [ ] A temp-project test invokes the registered `tool_call` handler with a
+        matching package tool name and verifies usage, timestamps, and due date
+        are saved to the manifest and sidecar.
+  - [ ] A nonmatching tool name leaves tracked usage unchanged.
   - [ ] `npm run ci` passes.
 
 ## How seeds are picked
@@ -177,8 +204,7 @@ one per maintenance window.
    release status above.
 2. One seed is promoted to a backlog issue per maintenance window, scoped to the
    listed acceptance criteria (no re-scoping needed).
-3. When a seed ships, move it out of this backlog and update the relevant
-   release goal above. Keep at least three live candidates here so the weekly
-   seed planner can pick without re-scoping; SEED-4 remains the primary target
-   for `0.1.19`, with SEED-6 and SEED-7 covering extension parsing coverage
-   and planner guardrails.
+3. When a seed ships, record it under `## Completed maintenance seeds` without
+   renumbering it, then replace it with genuinely open work. The smoke test
+   verifies that at least three estimated live candidates remain and excludes
+   completed seeds.
