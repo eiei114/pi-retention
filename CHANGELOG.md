@@ -8,6 +8,7 @@ This project follows semantic versioning.
 
 ### Changed
 
+- Move the Pi SDK development pins to `1.5.2` and re-verify the extension against the real Pi host.
 - Move the Pi SDK development pins to `1.5.0` and re-verify the extension against the real Pi host.
 - Document the verified 1.5.0 API surface in `docs/pi-sdk-compatibility.md`; this package registers commands and event handlers only, so the 1.5.0 tool-schema migration does not apply.
 - Move the Pi SDK development pins to `1.4.0` and verify the extension against the real Pi host.
