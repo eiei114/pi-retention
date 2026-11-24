@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { parse as parseYaml } from "yaml";
@@ -82,6 +82,31 @@ test("quarantine, restore, and purge keep the package, sidecar, and log in sync"
   const quarantinedSidecar = await readSidecar(firstTrashPath);
   assert.equal(quarantinedSidecar.state, "quarantined");
   assert.equal(quarantinedSidecar.quarantinePath, firstTrashPath);
+
+  // A different package may have appeared at the original path since quarantine.
+  await mkdir(packageRoot);
+  const replacementPath = join(packageRoot, "replacement.txt");
+  await writeFile(replacementPath, "leave the replacement alone", "utf8");
+  const recordBeforeRefusal = { ...record };
+  const trashFilesBeforeRefusal = (await readdir(firstTrashPath)).sort();
+  const unchangedPaths = [
+    replacementPath,
+    join(firstTrashPath, "artifact.txt"),
+    getSidecarPath(firstTrashPath),
+    settingsPath,
+    manifestPath,
+    getLogPath(projectRoot),
+  ];
+  const beforeRefusal = await Promise.all(unchangedPaths.map((path) => readFile(path)));
+
+  await assert.rejects(() => restoreRecord(projectRoot, record), {
+    message: `Cannot restore: destination already exists: ${packageRoot}`,
+  });
+  assert.deepEqual(record, recordBeforeRefusal);
+  assert.deepEqual(await readdir(packageRoot), ["replacement.txt"]);
+  assert.deepEqual((await readdir(firstTrashPath)).sort(), trashFilesBeforeRefusal);
+  assert.deepEqual(await Promise.all(unchangedPaths.map((path) => readFile(path))), beforeRefusal);
+  await rm(packageRoot, { recursive: true });
 
   const beforeRestore = Date.now();
   await restoreRecord(projectRoot, record);

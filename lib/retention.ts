@@ -1,5 +1,5 @@
 import { constants } from "node:fs";
-import { copyFile, mkdir, readFile, rename, rm, writeFile, cp } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, rename, rm, writeFile, cp } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
@@ -524,6 +524,14 @@ export async function restoreRecord(projectRoot: string, record: RetentionRecord
   }
 
   const destination = record.rootPath;
+  // Refuse any existing entry, including a dangling symlink, before moving files.
+  const existing = await lstat(destination).catch((error: NodeJS.ErrnoException) => {
+    if (error.code !== "ENOENT") throw error;
+    return undefined;
+  });
+  if (existing) {
+    throw new Error(`Cannot restore: destination already exists: ${destination}`);
+  }
   await moveDirectory(record.quarantinePath, destination);
   await updateProjectPackages(projectRoot, (packages) => {
     const restored = record.originalPackageEntry ?? record.rootPath;
