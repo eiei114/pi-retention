@@ -166,3 +166,26 @@ test("formatReport highlights startup candidate and status legend", () => {
   assert.match(text, / P Pinned Item/);
   assert.match(text, / Q Quarantined Item/);
 });
+
+test("formatReport sorts valid due dates before invalid ones without changing the startup candidate", () => {
+  const late = record({ id: "late", displayName: "Late", dueAt: "2026-01-20T00:00:00.000Z" });
+  const invalid = record({ id: "invalid", displayName: "Invalid", dueAt: "not-a-date" });
+  const early = record({ id: "early", displayName: "Early", dueAt: "2026-01-10T00:00:00.000Z" });
+  const records = [late, invalid, early];
+
+  assert.equal(isStartupCandidate(invalid, NOW), false);
+  assert.equal(selectOldestExpiredRecord(records, NOW), early);
+
+  const text = formatReport({
+    version: 1,
+    updatedAt: NOW,
+    defaults: { skillTtlDays: 30, extensionTtlDays: 90 },
+    records,
+  }, NOW);
+
+  assert.match(text, /startup candidate \(one per launch\): Early/);
+  assert.deepEqual(
+    text.split("\n").filter((line) => line.includes(" · uses=")).map((line) => line.split(" · ")[0]),
+    [">! Early", " ! Late", " A Invalid"],
+  );
+});
