@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -48,6 +48,31 @@ test("discoverPackages reads package metadata once per local root", async () => 
   assert.equal(discoveries[0].packageName, "pi-demo-skill");
   assert.equal(discoveries[0].kind, "skill");
   assert.equal(discoveries[0].entry, "./packages/demo-skill");
+});
+
+test("discoverPackages keeps malformed metadata beside a valid skill package without rewriting settings", async (t) => {
+  const projectRoot = await mkdtemp(join(tmpdir(), "pi-retention-discovery-"));
+  t.after(() => rm(projectRoot, { recursive: true, force: true }));
+  const settingsPath = join(projectRoot, ".pi", "settings.json");
+  const settings = '{\n  "packages": ["./packages/malformed", "./packages/valid"]\n}\n';
+  await mkdir(join(projectRoot, ".pi"));
+  await writeFile(settingsPath, settings, "utf8");
+
+  for (const [directory, metadata] of [
+    ["malformed", { name: 42, pi: { skills: "./skills/demo" } }],
+    ["valid", { name: "  pi-demo-skill  ", pi: { skills: ["./skills/demo"] } }],
+  ]) {
+    const packageRoot = join(projectRoot, "packages", directory);
+    await mkdir(packageRoot, { recursive: true });
+    await writeFile(join(packageRoot, "package.json"), JSON.stringify(metadata), "utf8");
+  }
+
+  const discoveries = await discoverPackages(projectRoot);
+  assert.deepEqual(discoveries.map(({ entry, packageName, kind }) => ({ entry, packageName, kind })), [
+    { entry: "./packages/malformed", packageName: "malformed", kind: "extension" },
+    { entry: "./packages/valid", packageName: "pi-demo-skill", kind: "skill" },
+  ]);
+  assert.equal(await readFile(settingsPath, "utf8"), settings);
 });
 
 test("loadSyncedProjectRetention bumps usage for the package alias", async () => {
