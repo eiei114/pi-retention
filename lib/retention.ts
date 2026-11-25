@@ -353,7 +353,13 @@ function isPastDue(dueAt: string, now: string) {
 }
 
 export function compareStartupCandidates(a: RetentionRecord, b: RetentionRecord) {
-  const dueDelta = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+  const aDueAt = new Date(a.dueAt).getTime();
+  const bDueAt = new Date(b.dueAt).getTime();
+  const aHasValidDueAt = Number.isFinite(aDueAt);
+  const bHasValidDueAt = Number.isFinite(bDueAt);
+  if (aHasValidDueAt !== bHasValidDueAt) return aHasValidDueAt ? -1 : 1;
+  if (!aHasValidDueAt) return 0;
+  const dueDelta = aDueAt - bDueAt;
   if (dueDelta !== 0) return dueDelta;
   const aLastUsedAt = new Date(a.lastUsedAt).getTime();
   const bLastUsedAt = new Date(b.lastUsedAt).getTime();
