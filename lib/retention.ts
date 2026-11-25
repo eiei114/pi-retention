@@ -196,14 +196,12 @@ export function resolvePackageEntry(entry: string, projectRoot: string) {
   return normalizeRootPath(isAbsolute(entry) ? entry : resolve(projectRoot, entry));
 }
 
-type PackageJsonMetadata = {
-  name?: string;
-  pi?: { extensions?: unknown[]; skills?: unknown[] };
-};
-
-export function parsePackageMetadata(pkg: PackageJsonMetadata | undefined, rootPath: string) {
-  const packageName = pkg?.name?.trim() || basename(rootPath);
-  const kind: RetentionKind = (pkg?.pi?.skills?.length ?? 0) > 0 ? "skill" : "extension";
+export function parsePackageMetadata(pkg: unknown, rootPath: string) {
+  const name = pkg && typeof pkg === "object" && "name" in pkg ? pkg.name : undefined;
+  const pi = pkg && typeof pkg === "object" && "pi" in pkg ? pkg.pi : undefined;
+  const skills = pi && typeof pi === "object" && "skills" in pi ? pi.skills : undefined;
+  const packageName = (typeof name === "string" ? name.trim() : "") || basename(rootPath);
+  const kind: RetentionKind = Array.isArray(skills) && skills.length > 0 ? "skill" : "extension";
   return { packageName, kind };
 }
 
@@ -220,7 +218,7 @@ export async function discoverPackages(projectRoot: string): Promise<PackageDisc
     const rootPath = resolvePackageEntry(entry, projectRoot);
     if (seen.has(rootPath)) continue;
 
-    const pkgJson = await readJsonIfExists<PackageJsonMetadata>(join(rootPath, "package.json"));
+    const pkgJson = await readJsonIfExists<unknown>(join(rootPath, "package.json"));
     if (!pkgJson) continue;
 
     const { packageName, kind } = parsePackageMetadata(pkgJson, rootPath);
